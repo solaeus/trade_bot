@@ -1,0 +1,12 @@
+ItemDef(
+    legacy_name: "Velorite Battlemage Gauntlets",
+    legacy_description: "",
+    kind: Armor((
+        kind: Hand,
+        stats: FromSet("Velorite Battlemage"),
+    )),
+    quality: High,
+    tags: [
+        Material(Velorite),
+    ],
+)

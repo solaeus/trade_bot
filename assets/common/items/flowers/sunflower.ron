@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Sunflower",
+    legacy_description: "Smells like summer.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Common,
+    tags: [],
+)

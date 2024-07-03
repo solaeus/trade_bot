@@ -1,0 +1,12 @@
+ItemDef(
+    legacy_name: "Ferocious Guards",
+    legacy_description: "The dark side of nature",
+    kind: Armor((
+        kind: Shoulder,
+        stats: FromSet("Ferocious"),
+    )),
+    quality: Epic,
+    tags: [
+        Material(Moonweave),
+    ],
+)

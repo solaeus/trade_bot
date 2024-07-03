@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Velorite Fragment",
+    legacy_description: "Small runes sparkle on its surface, though you don't know what it means.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Moderate,
+    tags: [],
+)

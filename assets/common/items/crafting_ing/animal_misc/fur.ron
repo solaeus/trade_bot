@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Soft Fur",
+    legacy_description: "Soft fur from an animal.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Common,
+    tags: [],
+)

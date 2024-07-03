@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Ruby",
+    legacy_description: "A superbly scarlet gem.",
+    kind: Ingredient(
+        descriptor: "Ruby",
+    ),
+    quality: High,
+    tags: [],
+)

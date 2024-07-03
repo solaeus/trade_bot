@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Blue Cloth Pads",
+    legacy_description: "Simple shoulderpads made from blue cloth.",
+    kind: Armor((
+        kind: Shoulder,
+        stats: FromSet("Cloth Blue"),
+    )),
+    quality: Common,
+    tags: [
+        Material(Linen),
+        SalvageInto(Linen, 1),
+    ],
+)

@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Strong Pincer",
+    legacy_description: "The pincer of some creature, it is very tough.\n\nThis can be used when crafting weapons.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Common,
+    tags: [],
+)

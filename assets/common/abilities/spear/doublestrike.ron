@@ -1,0 +1,57 @@
+ComboMelee2(
+    strikes: [
+        (
+            melee_constructor: (
+                kind: Stab(
+                    damage: 6.5,
+                    poise: 18,
+                    knockback: 4,
+                    energy_regen: 0,
+                ),
+                range: 2.5,
+                angle: 15.0,
+                damage_effect: Some(Buff((
+                    kind: Bleeding,
+                    dur_secs: 10.0,
+                    strength: DamageFraction(0.1),
+                    chance: 0.1,
+                ))),
+            ),
+            buildup_duration: 0.35,
+            swing_duration: 0.075,
+            hit_timing: 0.5,
+            recover_duration: 0.4,
+            movement: (
+                swing: Some(Forward(0.7)),
+            ),
+            ori_modifier: 0.75,
+        ),
+        (
+            melee_constructor: (
+                kind: Stab(
+                    damage: 8,
+                    poise: 18,
+                    knockback: 7,
+                    energy_regen: 0,
+                ),
+                range: 2.5,
+                angle: 15.0,
+                damage_effect: Some(Buff((
+                    kind: Bleeding,
+                    dur_secs: 10.0,
+                    strength: DamageFraction(0.1),
+                    chance: 0.1,
+                ))),
+            ),
+            buildup_duration: 0.5,
+            swing_duration: 0.1,
+            hit_timing: 0.5,
+            recover_duration: 0.5,
+            movement: (
+                swing: Some(Forward(0.7)),
+            ),
+            ori_modifier: 0.75,
+        ),
+    ],
+    energy_cost_per_strike: 0,
+)

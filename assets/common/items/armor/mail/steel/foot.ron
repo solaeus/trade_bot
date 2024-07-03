@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Steel Boots",
+    legacy_description: "Metal alloy boots providing a more comfortable and durable protection.",
+    kind: Armor((
+        kind: Foot,
+        stats: FromSet("Steel"),
+    )),
+    quality: Moderate,
+    tags: [
+        Material(Steel),
+        SalvageInto(Steel, 1),
+    ],
+)

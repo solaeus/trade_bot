@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Bone Key",
+    legacy_description: "Used to open bone locks. Will break after use.",
+    kind: Utility(
+        kind: Key,
+    ),
+    quality: Common,
+    tags: [Utility],
+)
+

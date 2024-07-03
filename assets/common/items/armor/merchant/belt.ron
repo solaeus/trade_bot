@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Merchant Belt",
+    legacy_description: "",
+    kind: Armor((
+        kind: Belt,
+        stats: FromSet("Merchant"),
+    )),
+    quality: Epic,
+    tags: [
+    ],
+)

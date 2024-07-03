@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Red Linen",
+    legacy_description: "A flax fiber textile, dyed to stand out.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Low,
+    tags: [MaterialKind(Cloth)],
+)

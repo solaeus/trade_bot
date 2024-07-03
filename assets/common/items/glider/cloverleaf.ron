@@ -1,0 +1,7 @@
+ItemDef(
+    legacy_name: "Cloverleaf",
+    legacy_description: "Brings luck to its owner. Light-weight and cheap to make, and also very cute!",
+    kind: Glider,
+    quality: Moderate,
+    tags: [],
+)

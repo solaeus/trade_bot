@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Steel Chausses",
+    legacy_description: "The metal alloy provides improvements to fit, durability, and lightness.",
+    kind: Armor((
+        kind: Pants,
+        stats: FromSet("Steel"),
+    )),
+    quality: Moderate,
+    tags: [
+        Material(Steel),
+        SalvageInto(Steel, 2),
+    ],
+)

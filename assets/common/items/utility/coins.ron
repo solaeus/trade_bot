@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Coins",
+    legacy_description: "Precious coins, can be exchanged for goods and services.",
+    kind: Utility(
+        kind: Coins,
+    ),
+    quality: Common,
+    tags: [],
+)
+

@@ -1,0 +1,16 @@
+ItemDef(
+    legacy_name: "Spiked Crown",
+    legacy_description: "Resembling some sort of thorny crown.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(7.0)),
+            poise_resilience: Some(Normal(3.0)),
+            precision_power: Some(0.036),
+        )),
+    )),
+    quality: High,
+    tags: [
+        SalvageInto(Cobalt, 1),
+    ],
+)

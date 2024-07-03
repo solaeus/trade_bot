@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Exclamation hat",
+    legacy_description: "You feel like bestowing quests.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+        )),
+    )),
+    quality: Common,
+    tags: [],
+)

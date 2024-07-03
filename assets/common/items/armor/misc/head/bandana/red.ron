@@ -1,0 +1,15 @@
+ItemDef(
+    legacy_name: "Red Bandana",
+    legacy_description: "Very sneaky, but also, bright red.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            precision_power: Some(0.006),
+            stealth: Some(0.14),
+        )),
+    )),
+    quality: Common,
+    tags: [
+        SalvageInto(RedLinen, 3)
+    ],
+)

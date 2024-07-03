@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Brinestone Boots",
+    legacy_description: "Not very comfortable.",
+    kind: Armor((
+        kind: Foot,
+        stats: FromSet("Brinestone"),
+    )),
+    quality: Legendary,
+    tags: [],
+)

@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Test 18 slot bag",
+    legacy_description: "Used for unit tests do not delete",
+    kind: Armor((
+        kind: Bag,
+        stats: Direct(()),
+    )),
+    quality: High,
+    tags: [],
+    slots: 18,
+)

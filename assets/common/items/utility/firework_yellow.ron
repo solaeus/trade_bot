@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Firework Yellow",
+    legacy_description: "The Great Doctor passed away after\ntesting this contraption indoors.",
+    kind: Throwable(
+        kind: Firework(Yellow),
+    ),
+    quality: Moderate,
+    tags: [Utility],
+)

@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Red Cloth Glider",
+    legacy_description: "A simple glider, but with a striking red color.",
+    kind: Glider,
+    quality: Moderate,
+    tags: [
+        SalvageInto(RedLinen, 5)
+    ],
+)

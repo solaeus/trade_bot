@@ -1,0 +1,25 @@
+BasicRanged(
+    energy_cost: 0,
+    buildup_duration: 1.2,
+    recover_duration: 0.5,
+    projectile: (
+        kind: Pointed,
+        attack: Some((
+            damage: 30,
+            knockback: Some(5),
+            energy: 10,
+            buff: Some((
+                kind: Bleeding,
+                dur_secs: 10,
+                strength: DamageFraction(0.1),
+                chance: 0.1,
+            )),
+        )),
+    ),
+    projectile_body: Object(ArrowTurret),
+    projectile_light: None,
+    projectile_speed: 130.0,
+    num_projectiles: 1,
+    projectile_spread: 0.0,
+    move_efficiency: 0.3,
+)

@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Tin Ore",
+    legacy_description: "A silvery metal. One of the components of bronze.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Low,
+    tags: [],
+)

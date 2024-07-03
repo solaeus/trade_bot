@@ -1,0 +1,14 @@
+ItemDef(
+    legacy_name: "Tiny Red Pouch",
+    legacy_description: "Made from multiple patches of dyed cloth.",
+    kind: Armor((
+        kind: Bag,
+        stats: Direct(()),
+    )),
+    quality: Common,
+    tags: [
+        Bag,
+        SalvageInto(RedLinen, 1)
+    ],
+    slots: 6,
+)

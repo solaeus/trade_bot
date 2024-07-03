@@ -1,0 +1,12 @@
+ItemDef(
+    legacy_name: "Tarasque Chausses",
+    legacy_description: "Fragmented tarasque shell tied together to form protective leg armor.",
+    kind: Armor((
+        kind: Pants,
+        stats: FromSet("Tarasque"),
+    )),
+    quality: High,
+    tags: [
+        Material(Carapace),
+    ],
+)

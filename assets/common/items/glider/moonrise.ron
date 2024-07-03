@@ -1,0 +1,7 @@
+ItemDef(
+    legacy_name: "Aquatic Night",
+    legacy_description: "The stars are beautiful tonight.",
+    kind: Glider,
+    quality: Epic,
+    tags: [],
+)

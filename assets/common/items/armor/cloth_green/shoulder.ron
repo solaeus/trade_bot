@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Green Linen Coat",
+    legacy_description: "A rough fabric coat, dyed green.",
+    kind: Armor((
+        kind: Shoulder,
+        stats: FromSet("Cloth Green"),
+    )),
+    quality: Common,
+    tags: [
+        Material(Linen),
+        SalvageInto(Linen, 1),
+    ],
+)

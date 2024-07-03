@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Velorite Belt",
+    legacy_description: "",
+    kind: Armor((
+        kind: Belt,
+        stats: Direct(()),
+    )),
+    quality: Debug,
+    tags: [],
+)

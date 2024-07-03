@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Primal Legs",
+    legacy_description: "Smithed from hide tougher than steel.",
+    kind: Armor((
+        kind: Pants,
+        stats: FromSet("Plate"),
+    )),
+    quality: Epic,
+    tags: [
+        Material(Plate),
+        SalvageInto(Plate, 2),
+    ],
+)

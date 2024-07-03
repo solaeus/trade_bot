@@ -1,0 +1,20 @@
+RapidMelee(
+    buildup_duration: 1.0,
+    swing_duration: 0.45,
+    recover_duration: 1.0,
+    melee_constructor: (
+        kind: NecroticVortex(
+            damage: 20,
+            pull: 6.5,
+            lifesteal: 3.0,
+            energy_regen: 30,
+        ),
+        range: 17.0,
+        angle: 360.0,
+        multi_target: Some(Normal),
+    ),
+    energy_cost: 0,
+    ori_modifier: 1.0,
+    move_modifier: 0.0,
+    frontend_specifier: Some(CultistVortex),
+)

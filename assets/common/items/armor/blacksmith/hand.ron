@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Blacksmith Gloves",
+    legacy_description: "",
+    kind: Armor((
+        kind: Hand,
+        stats: FromSet("Blacksmith"),
+    )),
+    quality: Epic,
+    tags: [
+    ],
+)

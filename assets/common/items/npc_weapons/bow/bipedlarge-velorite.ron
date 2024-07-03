@@ -1,0 +1,20 @@
+ItemDef(
+    legacy_name: "Giant Velorite Bow",
+    legacy_description: "Infused with Velorite power.",
+    kind: Tool((
+        kind: Bow,
+        hands: Two,
+        stats: (
+            equip_time_secs: 0.4,
+            power: 1.6,
+            effect_power: 1.1,
+            speed: 0.8,
+            range: 1.0,
+            energy_efficiency: 1.0,
+            buff_strength: 1.0,
+        ),
+    )),
+    quality: Epic,
+    tags: [],
+    ability_spec: Some(Custom("BipedLargeCultistBow")),
+)

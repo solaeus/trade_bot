@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Reliable Backpack",
+    legacy_description: "It will never give you up.",
+    kind: Armor((
+        kind: Bag,
+        stats: Direct(()),
+    )),
+    quality: Epic,
+    tags: [Bag],
+    slots: 20,
+)

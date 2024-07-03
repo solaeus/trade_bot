@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Tough Hide",
+    legacy_description: "A relatively tough, rough hide. Becomes leather.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Common,
+    tags: [
+    ],
+)

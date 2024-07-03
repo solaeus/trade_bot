@@ -1,0 +1,19 @@
+ItemDef(
+    legacy_name: "Cactus Colada",
+    legacy_description: "Giving you that special prickle.",
+    kind: Consumable(
+        kind: Drink,
+        effects: One(
+            Buff((
+                kind: Saturation,
+                data: (
+                    strength: 5.0,
+                    duration: Some(5),
+                    ),
+                cat_ids: [Natural],
+            )),
+        )
+    ),
+    quality: Moderate,
+    tags: [Food],
+)

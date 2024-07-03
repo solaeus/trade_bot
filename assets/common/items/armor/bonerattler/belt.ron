@@ -1,0 +1,12 @@
+ItemDef(
+    legacy_name: "Bonerattler Belt",
+    legacy_description: "Sections of vertebrae fastened together with hide and a bonerattler eye for the buckle.",
+    kind: Armor((
+        kind: Belt,
+        stats: FromSet("Bonerattler"),
+    )),
+    quality: High,
+    tags: [
+        Material(Leather),
+    ],
+)

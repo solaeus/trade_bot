@@ -1,0 +1,15 @@
+ItemDef(
+    legacy_name: "Green Blanket",
+    legacy_description: "Keeps your shoulders warm.",
+    kind: Armor((
+        kind: Back,
+        stats: Direct((
+            protection: Some(Normal(0.1)),
+        )),
+    )),
+    quality: Common,
+    tags: [
+        Material(Linen),
+        SalvageInto(Linen, 1),
+    ],
+)

@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Collar",
+    legacy_description: "Tames neutral wild animals within 5 blocks",
+    kind: Utility(
+        kind: Collar,
+    ),
+    quality: Moderate,
+    tags: [Utility],
+)

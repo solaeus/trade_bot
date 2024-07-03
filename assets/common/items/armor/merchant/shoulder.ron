@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Merchant Mantle",
+    legacy_description: "",
+    kind: Armor((
+        kind: Shoulder,
+        stats: FromSet("Merchant"),
+    )),
+    quality: Epic,
+    tags: [
+    ],
+)

@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Leaves Glider",
+    legacy_description: "Soar among the trees",
+    kind: Glider,
+    quality: Moderate,
+    tags: [
+        SalvageInto(Linen, 1)
+    ],
+)

@@ -1,0 +1,14 @@
+ItemDef(
+    legacy_name: "Scratched Ring",
+    legacy_description: "Barely fits your finger.",
+    kind: Armor((
+        kind: Ring,
+        stats: Direct((
+            protection: Some(Normal(0.25)),
+        )),
+    )),
+    quality: Low,
+    tags: [
+        SalvageInto(Bronze, 1),
+    ],
+)

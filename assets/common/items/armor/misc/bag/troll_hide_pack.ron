@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Trollhide Pack",
+    legacy_description: "Trolls were definitely hurt in the making of this.",
+    kind: Armor((
+        kind: Bag,
+        stats: Direct(()),
+    )),
+    quality: Epic,
+    tags: [Bag],
+    slots: 20,
+)

@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Heavy Seabag",
+    legacy_description: "Commonly used by sailors.",
+    kind: Armor((
+        kind: Bag,
+        stats: Direct(()),
+    )),
+    quality: Epic,
+    tags: [Bag],
+    slots: 20,
+)

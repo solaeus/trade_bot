@@ -1,0 +1,19 @@
+ItemDef(
+    legacy_name: "Raw Bird Meat",
+    legacy_description: "A hefty drumstick.",
+    kind: Consumable(
+        kind: Food,
+        effects: One(
+            Buff((
+                kind: Saturation,
+                data: (
+                    strength: .45,
+                    duration: Some(10),
+                    ),
+                cat_ids: [Natural],
+            )),
+        )
+    ),
+    quality: Common,
+    tags: [Food],
+)

@@ -1,0 +1,12 @@
+ItemDef(
+    legacy_name: "Ferocious Sash",
+    legacy_description: "The dark side of nature",
+    kind: Armor((
+        kind: Belt,
+        stats: FromSet("Ferocious"),
+    )),
+    quality: Epic,
+    tags: [
+        Material(Moonweave),
+    ],
+)

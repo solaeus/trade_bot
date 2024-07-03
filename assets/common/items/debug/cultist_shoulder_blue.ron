@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Velorite Mantle",
+    legacy_description: "",
+    kind: Armor((
+        kind: Shoulder,
+        stats: Direct(()),
+    )),
+    quality: Debug,
+    tags: [],
+)

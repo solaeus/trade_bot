@@ -1,0 +1,16 @@
+ItemDef(
+    legacy_name: "Dark Hood",
+    legacy_description: "Tis a bit thicker.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(4.5)),
+            poise_resilience: Some(Normal(1.0)),
+            stealth: Some(0.2),
+        )),
+    )),
+    quality: Moderate,
+    tags: [
+        SalvageInto(Leather, 1),
+    ],
+)

@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Witch Boots",
+    legacy_description: "",
+    kind: Armor((
+        kind: Foot,
+        stats: FromSet("Witch"),
+    )),
+    quality: Epic,
+    tags: [
+    ],
+)

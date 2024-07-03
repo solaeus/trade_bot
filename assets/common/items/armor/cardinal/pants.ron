@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Cardinal's Jeans",
+    legacy_description: "Pants with many experiences.",
+    kind: Armor((
+        kind: Pants,
+        stats: FromSet("Cardinal"),
+    )),
+    quality: Legendary,
+    tags: [
+    ],
+)

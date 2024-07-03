@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Seashell Necklace",
+    legacy_description: "Contains the guardian aura of the ocean",
+    kind: Armor((
+        kind: Neck,
+        stats: Direct((
+            protection: Some(Normal(2.0)),
+            poise_resilience: Some(Normal(1.0)),
+        )),
+    )),
+    quality: Moderate,
+    tags: [],
+)

@@ -1,0 +1,13 @@
+([
+    Group(Weapon(Axe)),
+
+    Skill((Axe(BrutalSwing), 1)),
+    Skill((Axe(Rake), 1)),
+    Skill((Axe(SkullBash), 1)),
+    Skill((Axe(Berserk), 1)),
+    Skill((Axe(RisingTide), 1)),
+    Skill((Axe(Bloodfeast), 1)),
+    Skill((Axe(FierceRaze), 1)),
+    Skill((Axe(Sunder), 1)),
+    Skill((Axe(Plunder), 1)),
+])

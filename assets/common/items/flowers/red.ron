@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Red Flower",
+    legacy_description: "Can be used as a dying ingredient.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Common,
+    tags: [],
+)

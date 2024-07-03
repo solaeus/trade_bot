@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    name: Name("Wooden Golem"),
+    body: RandomWith("woodgolem"),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.dungeon.gnarling.woodgolem"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)

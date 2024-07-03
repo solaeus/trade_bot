@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Long Grass",
+    legacy_description: "Greener than an orc's snout.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Common,
+    tags: [],
+)

@@ -1,0 +1,16 @@
+ItemDef(
+    legacy_name: "Amethyst Necklace",
+    legacy_description: "A tin necklace lined with amethyst gems.",
+    kind: Armor((
+        kind: Neck,
+        stats: Direct((
+            protection: Some(Normal(1.0)),
+            energy_reward: Some(0.075),
+            precision_power: Some(-0.03),
+        )),
+    )),
+    quality: Common,
+    tags: [
+        SalvageInto(Amethyst, 1),
+    ],
+)

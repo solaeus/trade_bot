@@ -1,0 +1,24 @@
+BasicRanged(
+    energy_cost: 0.0,
+    buildup_duration: 0.55,
+    recover_duration: 0.45,
+    projectile: (
+        kind: Pointed,
+        attack: Some((
+            damage: 31,
+            knockback: Some(5),
+            energy: 20,
+            buff: Some((
+                kind: Bleeding,
+                dur_secs: 10,
+                strength: DamageFraction(0.1),
+                chance: 0.1,
+            )),
+        )),
+    ),
+    projectile_body: Object(SpectralSwordLarge),
+    projectile_speed: 120.0,
+    num_projectiles: 3,
+    projectile_spread: 0.075,
+    move_efficiency: 0.3,
+)

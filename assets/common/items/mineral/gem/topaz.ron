@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Topaz",
+    legacy_description: "An outstanding orange gem.",
+    kind: Ingredient(
+        descriptor: "Topaz",
+    ),
+    quality: Common,
+    tags: [],
+)

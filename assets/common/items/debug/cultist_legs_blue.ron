@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Velorite Skirt",
+    legacy_description: "",
+    kind: Armor((
+        kind: Pants,
+        stats: Direct(()),
+    )),
+    quality: Debug,
+    tags: [],
+)

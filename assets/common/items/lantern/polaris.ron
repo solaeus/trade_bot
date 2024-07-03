@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Polaris",
+    legacy_description: "Christmas Lantern.",
+    kind: Lantern(
+        (
+            color: (r: 67, g: 170, b: 255),
+            strength_thousandths: 8000,
+            flicker_thousandths: 600,
+        ),
+    ),
+    quality: Legendary,
+    tags: [Utility],
+)

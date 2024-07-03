@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Wild Flax",
+    legacy_description: "Could be used to spin some simple cloth.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Common,
+    tags: [],
+)

@@ -1,0 +1,12 @@
+ItemDef(
+    legacy_name: "Tarasque Shoulder Pad",
+    legacy_description: "Spiky tarasque shell fragments formed to fit as shoulder guards.",
+    kind: Armor((
+        kind: Shoulder,
+        stats: FromSet("Tarasque"),
+    )),
+    quality: High,
+    tags: [
+        Material(Carapace),
+    ],
+)

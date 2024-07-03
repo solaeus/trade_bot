@@ -1,0 +1,12 @@
+ItemDef(
+    legacy_name: "Cultist Gloves",
+    legacy_description: "Ceremonial attire used by members.",
+    kind: Armor((
+        kind: Hand,
+        stats: FromSet("Cultist"),
+    )),
+    quality: Epic,
+    tags: [
+        Cultist,
+    ],
+)

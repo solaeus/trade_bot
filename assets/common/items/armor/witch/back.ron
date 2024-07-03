@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Witch Cape",
+    legacy_description: "",
+    kind: Armor((
+        kind: Back,
+        stats: FromSet("Witch"),
+    )),
+    quality: Epic,
+    tags: [
+    ],
+)

@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Cotton Boll",
+    legacy_description: "Plucked from a common cotton plant.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Common,
+    tags: [],
+)

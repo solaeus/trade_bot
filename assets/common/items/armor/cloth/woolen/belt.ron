@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Woolen Belt",
+    legacy_description: "Thick and ready for the snow.",
+    kind: Armor((
+        kind: Belt,
+        stats: FromSet("Wool"),
+    )),
+    quality: Common,
+    tags: [
+        Material(Wool),
+        SalvageInto(Wool, 1),
+    ],
+)

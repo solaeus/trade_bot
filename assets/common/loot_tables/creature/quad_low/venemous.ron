@@ -1,0 +1,8 @@
+[
+    (1, All([
+        MultiDrop(LootTable("common.loot_tables.creature.quad_low.generic"), 1, 1),
+        MultiDrop(Item("common.items.crafting_ing.animal_misc.sharp_fang"), 1, 2),
+        MultiDrop(Item("common.items.crafting_ing.animal_misc.venom_sac"), 1, 2),
+        ],
+    )),
+]

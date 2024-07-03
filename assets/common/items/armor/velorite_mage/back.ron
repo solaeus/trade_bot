@@ -1,0 +1,12 @@
+ItemDef(
+    legacy_name: "Velorite Battlemage Cloak",
+    legacy_description: "Keeps your shoulders warm.",
+    kind: Armor((
+        kind: Back,
+        stats: FromSet("Velorite Battlemage"),
+    )),
+    quality: High,
+    tags: [
+        Material(Velorite),
+    ],
+)

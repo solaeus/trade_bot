@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Mindflayer Spellbag",
+    legacy_description: "You can almost feel the Mindflayer's\nevil presence flowing through the fabric.",
+    kind: Armor((
+        kind: Bag,
+        stats: Direct(()),
+    )),
+    quality: Legendary,
+    tags: [Bag],
+    slots: 27,
+)

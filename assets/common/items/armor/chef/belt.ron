@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Chef Belt",
+    legacy_description: "",
+    kind: Armor((
+        kind: Belt,
+        stats: FromSet("Chef"),
+    )),
+    quality: Epic,
+    tags: [
+    ],
+)

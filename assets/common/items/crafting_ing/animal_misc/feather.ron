@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Feather",
+    legacy_description: "Feather from a bird.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Common,
+    tags: [],
+)

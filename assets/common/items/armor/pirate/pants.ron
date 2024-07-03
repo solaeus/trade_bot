@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Pirate Pants",
+    legacy_description: "",
+    kind: Armor((
+        kind: Pants,
+        stats: FromSet("Pirate"),
+    )),
+    quality: Epic,
+    tags: [
+    ],
+)

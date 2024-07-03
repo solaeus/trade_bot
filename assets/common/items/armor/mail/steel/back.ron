@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Steel Cape",
+    legacy_description: "Metal alloy interlocking plates to improve protection.",
+    kind: Armor((
+        kind: Back,
+        stats: FromSet("Steel"),
+    )),
+    quality: Moderate,
+    tags: [
+        Material(Steel),
+        SalvageInto(Steel, 1),
+    ],
+)

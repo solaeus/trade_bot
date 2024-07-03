@@ -1,0 +1,19 @@
+ItemDef(
+    legacy_name: "Sunflower Ice Tea",
+    legacy_description: "Brewed from freshly shelled sunflower seeds",
+    kind: Consumable(
+        kind: Drink,
+        effects: One(
+            Buff((
+                kind: Saturation,
+                data: (
+                    strength: 3.5,
+                    duration: Some(7.5),
+                    ),
+                cat_ids: [Natural],
+            )),
+        )
+    ),
+    quality: Moderate,
+    tags: [Food],
+)

@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Amethyst",
+    legacy_description: "A precious purple gem.",
+    kind: Ingredient(
+        descriptor: "Amethyst",
+    ),
+    quality: Common,
+    tags: [],
+)

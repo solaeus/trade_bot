@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Moonweave",
+    legacy_description: "A light yet very sturdy textile.",
+    kind: Ingredient(
+        descriptor: "Moonwoven",
+    ),
+    quality: Epic,
+    tags: [MaterialKind(Cloth), Material(Moonweave)],
+)

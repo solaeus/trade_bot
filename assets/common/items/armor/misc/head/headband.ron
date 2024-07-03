@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Headband",
+    legacy_description: "A simple headband, it's nothing special.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+        )),
+    )),
+    quality: Common,
+    tags: [],
+)

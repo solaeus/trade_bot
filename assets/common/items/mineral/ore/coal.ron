@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Coal",
+    legacy_description: "A dark, combustible energy source.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Moderate,
+    tags: [],
+)

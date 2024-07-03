@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Moonbell",
+    legacy_description: "It glistens brilliantly under the moonlight.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Common,
+    tags: [],
+)

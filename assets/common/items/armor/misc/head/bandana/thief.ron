@@ -1,0 +1,15 @@
+ItemDef(
+    legacy_name: "Thief Bandana",
+    legacy_description: "Common bandit's mask.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            precision_power: Some(0.0045),
+            stealth: Some(0.18),
+        )),
+    )),
+    quality: Common,
+    tags: [
+        SalvageInto(Linen, 3)
+    ],
+)

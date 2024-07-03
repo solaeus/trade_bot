@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Dragon Scale",
+    legacy_description: "Tough scale from a legendary beast, hot to the touch.",
+    kind: Ingredient(
+        descriptor: "Dragonscale",
+    ),
+    quality: Legendary,
+    tags: [MaterialKind(Hide), Material(Dragonscale)],
+)

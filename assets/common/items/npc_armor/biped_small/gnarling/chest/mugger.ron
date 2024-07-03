@@ -1,0 +1,16 @@
+ItemDef(
+    legacy_name: "Gnarling",
+    legacy_description: "Ceremonial attire used by members.",
+    kind: Armor((
+        kind: Chest,
+        stats: Direct((
+            protection: Some(Normal(2.0)),
+            poise_resilience: Some(Normal(1.0)),
+            energy_max: Some(2.7),
+            energy_reward: Some(0.027),
+            precision_power: Some(0.150),
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

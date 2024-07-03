@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Yellow Flower",
+    legacy_description: "Glows like the sun.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Common,
+    tags: [],
+)

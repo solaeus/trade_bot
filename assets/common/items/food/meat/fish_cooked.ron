@@ -1,0 +1,19 @@
+ItemDef(
+    legacy_name: "Cooked Fish",
+    legacy_description: "A fresh cooked seafood steak.",
+    kind: Consumable(
+        kind: Food,
+        effects: One(
+            Buff((
+                kind: Saturation,
+                data: (
+                    strength: 3.9,
+                    duration: Some(7.5),
+                    ),
+                cat_ids: [Natural],
+            )),
+        )
+    ),
+    quality: Common,
+    tags: [Food],
+)

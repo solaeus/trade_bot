@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Scale Fists",
+    legacy_description: "Each embedded scale provides additional protection.",
+    kind: Armor((
+        kind: Hand,
+        stats: FromSet("Scale"),
+    )),
+    quality: Moderate,
+    tags: [
+        Material(Scale),
+        SalvageInto(Scale, 1),
+    ],
+)

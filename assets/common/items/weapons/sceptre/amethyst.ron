@@ -1,0 +1,20 @@
+ItemDef(
+    legacy_name: "Amethyst Staff",
+    legacy_description: "Its stone is the closest thing from perfection",
+    kind: Tool((
+        kind: Sceptre,
+        hands: Two,
+        stats: (
+            equip_time_secs: 0.4,
+            power: 1.8,
+            effect_power: 1.5,
+            speed: 1.2,
+            range: 1.0,
+            energy_efficiency: 1.0,
+            buff_strength: 1.0,
+        ),
+    )),
+    quality: Epic,
+    tags: [],
+    ability_spec: None,
+)

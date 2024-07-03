@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Bloodsteel Gauntlets",
+    legacy_description: "Forged to preserve life, at the cost of another.",
+    kind: Armor((
+        kind: Hand,
+        stats: FromSet("Bloodsteel"),
+    )),
+    quality: Epic,
+    tags: [
+        Material(Bloodsteel),
+        SalvageInto(Bloodsteel, 1),
+    ],
+)

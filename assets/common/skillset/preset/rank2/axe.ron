@@ -1,0 +1,8 @@
+([
+    Group(Weapon(Axe)),
+
+    Skill((Axe(BrutalSwing), 1)),
+    Skill((Axe(Rake), 1)),
+    Skill((Axe(SkullBash), 1)),
+
+])

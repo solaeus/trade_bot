@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Boreal Cloak",
+    legacy_description: "Thick yet surprisingly cold.",
+    kind: Armor((
+        kind: Back,
+        stats: FromSet("Boreal"),
+    )),
+    quality: Legendary,
+    tags: [],
+)

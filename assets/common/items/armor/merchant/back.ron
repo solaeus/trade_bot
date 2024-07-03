@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Merchant Backpack",
+    legacy_description: "",
+    kind: Armor((
+        kind: Backpack,
+        stats: FromSet("Merchant"),
+    )),
+    quality: High,
+    slots: 18,
+    tags: [],
+)

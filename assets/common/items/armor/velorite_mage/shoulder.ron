@@ -1,0 +1,12 @@
+ItemDef(
+    legacy_name: "Velorite Battlemage Guards",
+    legacy_description: "",
+    kind: Armor((
+        kind: Shoulder,
+        stats: FromSet("Velorite Battlemage"),
+    )),
+    quality: High,
+    tags: [
+        Material(Velorite),
+    ],
+)

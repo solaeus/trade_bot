@@ -1,0 +1,12 @@
+ItemDef(
+    legacy_name: "Bonerattler Chausses",
+    legacy_description: "Assorted bones and hide from a bonerattler provide protection around the wearer's legs.",
+    kind: Armor((
+        kind: Pants,
+        stats: FromSet("Bonerattler"),
+    )),
+    quality: High,
+    tags: [
+        Material(Leather),
+    ],
+)

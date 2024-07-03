@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Firework Purple",
+    legacy_description: "Cult favourite.",
+    kind: Throwable(
+        kind: Firework(Purple),
+    ),
+    quality: Moderate,
+    tags: [Utility],
+)

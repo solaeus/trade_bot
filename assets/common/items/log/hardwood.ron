@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Hardwood Logs",
+    legacy_description: "Extra thick and sturdy logs.\n\nThis can be used when crafting wooden weapons.",
+    kind: Ingredient(
+        descriptor: "Hardwood",
+    ),
+    quality: Moderate,
+    tags: [MaterialKind(Wood), Material(Hardwood)],
+)

@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Steel Gauntlets",
+    legacy_description: "The metal alloy provides better protection and lighter weight, a quite comfortable gauntlet.",
+    kind: Armor((
+        kind: Hand,
+        stats: FromSet("Steel"),
+    )),
+    quality: Moderate,
+    tags: [
+        Material(Steel),
+        SalvageInto(Steel, 1),
+    ],
+)

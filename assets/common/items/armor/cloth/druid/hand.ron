@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Druid Handwraps",
+    legacy_description: "Incredibly light, with the essence of nature.",
+    kind: Armor((
+        kind: Hand,
+        stats: FromSet("Lifecloth"),
+    )),
+    quality: High,
+    tags: [
+        Material(Lifecloth),
+        SalvageInto(Lifecloth, 1),
+    ],
+)

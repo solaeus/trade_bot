@@ -1,0 +1,14 @@
+ItemDef(
+    legacy_name: "Adlet Icepicker",
+    legacy_description: "Ceremonial attire used by members..",
+    kind: Armor((
+        kind: Pants,
+        stats: Direct((
+            protection: Some(Normal(9.0)),
+            poise_resilience: Some(Normal(3.0)),
+            precision_power: Some(0.032),
+        )),
+    )),
+    quality: Low,
+    tags: [],
+)

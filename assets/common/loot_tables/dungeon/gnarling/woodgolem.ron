@@ -1,0 +1,6 @@
+[
+    // Crafting ingredients
+    (2.4, MultiDrop(Item("common.items.log.wood"), 5, 10)),
+    (0.1, MultiDrop(Item("common.items.log.hardwood"), 1, 2)),
+    (0.5, LootTable("common.loot_tables.weapons.components.secondary.sceptre")),
+]

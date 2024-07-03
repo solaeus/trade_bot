@@ -1,0 +1,15 @@
+// Note: Will be used to craft other rings, acting as the base.
+ItemDef(
+    legacy_name: "Gold Ring",
+    legacy_description: "A plain gold ring... almost as if it is missing a gem.",
+    kind: Armor((
+        kind: Ring,
+        stats: Direct((
+            protection: Some(Normal(0.5)),
+        )),
+    )),
+    quality: Moderate,
+    tags: [
+        SalvageInto(Gold, 1),
+    ],
+)

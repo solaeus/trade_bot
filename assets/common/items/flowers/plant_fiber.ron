@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Plant Fiber",
+    legacy_description: "A length of raw plant material.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Common,
+    tags: [],
+)

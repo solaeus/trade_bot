@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Blue Linen Belt",
+    legacy_description: "A stylish rough fabric belt, dyed blue.",
+    kind: Armor((
+        kind: Belt,
+        stats: FromSet("Cloth Blue"),
+    )),
+    quality: Common,
+    tags: [
+        Material(Linen),
+        SalvageInto(Linen, 1),
+    ],
+)

@@ -1,0 +1,19 @@
+ItemDef(
+    legacy_name: "Cooked Bird Meat",
+    legacy_description: "Best enjoyed with one in each hand.",
+    kind: Consumable(
+        kind: Food,
+        effects: One(
+            Buff((
+                kind: Saturation,
+                data: (
+                    strength: 4.0,
+                    duration: Some(7.5),
+                    ),
+                cat_ids: [Natural],
+            )),
+        )
+    ),
+    quality: Common,
+    tags: [Food],
+)

@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Firework Red",
+    legacy_description: "Humans sometimes use these\nas a flare in a pinch.",
+    kind: Throwable(
+        kind: Firework(Red),
+    ),
+    quality: Moderate,
+    tags: [Utility],
+)

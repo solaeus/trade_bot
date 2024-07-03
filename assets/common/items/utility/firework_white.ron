@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Firework White",
+    legacy_description: "Twinkles like the stars",
+    kind: Throwable(
+        kind: Firework(White),
+    ),
+    quality: Moderate,
+    tags: [Utility],
+)

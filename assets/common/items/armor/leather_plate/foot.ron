@@ -1,0 +1,13 @@
+ItemDef(
+    legacy_name: "Leather Plate Boots",
+    legacy_description: "Leather adorned with steel for better protection.",
+    kind: Armor((
+        kind: Foot,
+        stats: FromSet("Leather Plate"),
+    )),
+    quality: High,
+    tags: [
+        Material(Leather),
+        SalvageInto(Leather, 1),
+    ],
+)

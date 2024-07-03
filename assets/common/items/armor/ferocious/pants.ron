@@ -1,0 +1,12 @@
+ItemDef(
+    legacy_name: "Ferocious Shorts",
+    legacy_description: "The dark side of nature",
+    kind: Armor((
+        kind: Pants,
+        stats: FromSet("Ferocious"),
+    )),
+    quality: Epic,
+    tags: [
+        Material(Moonweave),
+    ],
+)

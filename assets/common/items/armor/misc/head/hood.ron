@@ -1,0 +1,16 @@
+ItemDef(
+    legacy_name: "Hood",
+    legacy_description: "Become one with the treetops.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(2.5)),
+            precision_power: Some(0.016),
+            stealth: Some(0.22),
+        )),
+    )),
+    quality: Moderate,
+    tags: [
+        SalvageInto(Leather, 1),
+    ],
+)

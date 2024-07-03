@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Sunsilk",
+    legacy_description: "A supernaturally strong textile.",
+    kind: Ingredient(
+        descriptor: "Sunsilken",
+    ),
+    quality: Legendary,
+    tags: [MaterialKind(Cloth), Material(Sunsilk)],
+)

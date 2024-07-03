@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Cobalt Ingot",
+    legacy_description: "A strikingly blue ingot.\n\nThis can be used when crafting metal weapons.",
+    kind: Ingredient(
+        descriptor: "Cobalt",
+    ),
+    quality: High,
+    tags: [MaterialKind(Metal), Material(Cobalt)],
+)

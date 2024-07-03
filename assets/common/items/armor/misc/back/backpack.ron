@@ -1,0 +1,12 @@
+ItemDef(
+    legacy_name: "Traveler's Backpack",
+    legacy_description: "Comfortable and with enough capacity, its a hoarder's best friend.",
+    kind: Armor((
+        kind: Backpack,
+        stats: Direct((
+        )),
+    )),
+    quality: Epic,
+    tags: [Bag],
+    slots: 20,
+)

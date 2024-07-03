@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Velorite Gloves",
+    legacy_description: "",
+    kind: Armor((
+        kind: Hand,
+        stats: Direct(()),
+    )),
+    quality: Debug,
+    tags: [],
+)

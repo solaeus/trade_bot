@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "White flower",
+    legacy_description: "Pure and precious.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Common,
+    tags: [],
+)

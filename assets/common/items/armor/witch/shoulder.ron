@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Witch Mantle",
+    legacy_description: "",
+    kind: Armor((
+        kind: Shoulder,
+        stats: FromSet("Witch"),
+    )),
+    quality: Epic,
+    tags: [
+    ],
+)

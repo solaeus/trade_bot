@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Blacksmith Hat",
+    legacy_description: "",
+    kind: Armor((
+        kind: Head,
+        stats: FromSet("Blacksmith"),
+    )),
+    quality: High,
+    tags: [
+    ],
+)

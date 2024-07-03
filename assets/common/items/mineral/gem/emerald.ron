@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Emerald",
+    legacy_description: "A vibrant viridian gem.",
+    kind: Ingredient(
+        descriptor: "Emerald",
+    ),
+    quality: High,
+    tags: [],
+)

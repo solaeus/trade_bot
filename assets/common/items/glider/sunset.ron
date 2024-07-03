@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Horizon",
+    legacy_description: "It isn't high noon.",
+    kind: Glider,
+    quality: Epic,
+    tags: [
+        SalvageInto(RedLinen, 5),
+    ],
+)

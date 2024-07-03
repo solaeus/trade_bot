@@ -1,0 +1,18 @@
+ItemDef(
+    legacy_name: "Winged Coronet",
+    legacy_description: "You feel more connected with nature.",
+    kind: Armor((
+        kind: Head,
+        stats: Direct((
+            protection: Some(Normal(2.0)),
+            energy_max: Some(4.5),
+            energy_reward: Some(0.04),
+            precision_power: Some(0.006),
+            stealth: Some(0.17),
+        )),
+    )),
+    quality: High,
+    tags: [
+        SalvageInto(Silver, 1),
+    ],
+)

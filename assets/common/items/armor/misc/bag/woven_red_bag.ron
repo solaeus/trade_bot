@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Woven Red Bag",
+    legacy_description: "A moderately sized red bag. Although it still feels pretty cramped.",
+    kind: Armor((
+        kind: Bag,
+        stats: Direct(()),
+    )),
+    quality: High,
+    tags: [Bag],
+    slots: 15,
+)

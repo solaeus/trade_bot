@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Plain Cloth Glider",
+    legacy_description: "Simple, but classy.",
+    kind: Glider,
+    quality: Moderate,
+    tags: [
+        SalvageInto(Linen, 5)
+    ],
+)

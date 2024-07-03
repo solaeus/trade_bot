@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Velorite",
+    legacy_description: "A bizarre, oddly shimmering ore, its origin seems to be shrouded in mystery.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: High,
+    tags: [],
+)

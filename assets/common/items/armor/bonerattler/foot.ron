@@ -1,0 +1,12 @@
+ItemDef(
+    legacy_name: "Bonerattler Boots",
+    legacy_description: "Boots made from the claws and hide of a bonerattler.",
+    kind: Armor((
+        kind: Foot,
+        stats: FromSet("Bonerattler"),
+    )),
+    quality: High,
+    tags: [
+        Material(Leather),
+    ],
+)

@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Cactus",
+    legacy_description: "Grows in warm and dry places. Very prickly!",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Common,
+    tags: [],
+)

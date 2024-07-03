@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Silver Ore",
+    legacy_description: "A precious shiny greyish-white metal.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Epic,
+    tags: [],
+)

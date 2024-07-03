@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Ember",
+    legacy_description: "A flicking ember left by a fiery creature.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Common,
+    tags: [],
+)

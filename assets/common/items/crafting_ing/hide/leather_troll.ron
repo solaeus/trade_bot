@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Troll Hide",
+    legacy_description: "Looted from cave trolls.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: High,
+    tags: [BaseMaterial],
+)

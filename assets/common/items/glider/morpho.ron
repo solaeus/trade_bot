@@ -1,0 +1,7 @@
+ItemDef(
+    legacy_name: "Blue Morpho",
+    legacy_description: "The delicate wings flutter faintly.",
+    kind: Glider,
+    quality: High,
+    tags: [],
+)

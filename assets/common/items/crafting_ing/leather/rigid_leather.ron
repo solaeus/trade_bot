@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Rigid Leather",
+    legacy_description: "Light but layered, perfect for protection.",
+    kind: Ingredient(
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Epic,
+    tags: [BaseMaterial],
+)

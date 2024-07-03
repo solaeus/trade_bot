@@ -1,0 +1,9 @@
+ItemDef(
+    legacy_name: "Tin Ingot",
+    legacy_description: "An ingot primarily used to make bronze.",
+    kind: Ingredient(
+        descriptor: "Tin",
+    ),
+    quality: Low,
+    tags: [MaterialKind(Metal)],
+)

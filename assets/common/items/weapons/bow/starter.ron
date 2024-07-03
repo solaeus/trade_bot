@@ -1,0 +1,20 @@
+ItemDef(
+    legacy_name: "Uneven Bow",
+    legacy_description: "Someone carved their initials into it.",
+    kind: Tool((
+        kind: Bow,
+        hands: Two,
+        stats: (
+            equip_time_secs: 0.4,
+            power: 0.55,
+            effect_power: 1.0,
+            speed: 0.75,
+            range: 1.0,
+            energy_efficiency: 0.75,
+            buff_strength: 0.75,
+        ),
+    )),
+    quality: Low,
+    tags: [],
+    ability_spec: None,
+)

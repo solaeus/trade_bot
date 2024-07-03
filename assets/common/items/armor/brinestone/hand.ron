@@ -1,0 +1,10 @@
+ItemDef(
+    legacy_name: "Brinestone Gauntlets",
+    legacy_description: "Hits like a rock.",
+    kind: Armor((
+        kind: Hand,
+        stats: FromSet("Brinestone"),
+    )),
+    quality: Legendary,
+    tags: [],
+)

@@ -1,0 +1,11 @@
+ItemDef(
+    legacy_name: "Sturdy Red Saddlebag",
+    legacy_description: "A truly reliable and sizeable bag, embroidered with amethyst and thick leather.",
+    kind: Armor((
+        kind: Bag,
+        stats: Direct(()),
+    )),
+    quality: Epic,
+    tags: [Bag],
+    slots: 20,
+)

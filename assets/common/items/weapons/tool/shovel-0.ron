@@ -1,0 +1,22 @@
+ItemDef(
+    legacy_name: "Shovel",
+    legacy_description: "It's covered in manure.",
+    kind: Tool((
+        kind: Shovel,
+        hands: Two,
+        stats: (
+            equip_time_secs: 0.4,
+            power: 1.0,
+            effect_power: 2.0,
+            speed: 1.0,
+            range: 1.0,
+            energy_efficiency: 1.0,
+            buff_strength: 1.0,
+        ),
+    )),
+    quality: Moderate,
+    tags: [
+        CraftingTool,
+    ],
+    ability_spec: None,
+)

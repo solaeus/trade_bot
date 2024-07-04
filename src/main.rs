@@ -18,6 +18,7 @@ struct Config {
     pub password: String,
     pub buy_prices: HashMap<String, u32>,
     pub sell_prices: HashMap<String, u32>,
+    pub position: [f32; 3],
 }
 
 impl Config {
@@ -43,12 +44,13 @@ fn main() {
         &config.password,
         config.buy_prices,
         config.sell_prices,
+        config.position,
     )
     .expect("Failed to create bot");
 
     bot.select_character().expect("Failed to select character");
 
     loop {
-        bot.tick().expect("Failed to run bot");
+        bot.tick().inspect_err(|error| eprintln!("{error}"));
     }
 }

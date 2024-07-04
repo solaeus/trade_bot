@@ -1,40 +1,66 @@
 use std::{
-    sync::Arc,
+    borrow::Borrow,
+    collections::HashMap,
+    sync::{
+        mpsc::{self, Receiver, Sender},
+        Arc, Mutex,
+    },
     thread,
     time::{Duration, Instant},
 };
 
 use serde::Serialize;
 use tokio::runtime::Runtime;
-use veloren_client::{addr::ConnectionArgs, Client, Event};
+use veloren_client::{addr::ConnectionArgs, Client, Event as VelorenEvent};
 use veloren_common::{
     clock::Clock,
     comp::{
         invite::InviteKind,
-        item::{ItemDefinitionId, ItemDefinitionIdOwned, ItemDesc},
+        item::{self, ItemDefinitionId, ItemDefinitionIdOwned, ItemDesc},
         ChatType, ControllerInputs, Item,
     },
-    trade::TradeAction,
+    trade::{PendingTrade, TradeAction, TradePhase},
     uid::Uid,
     ViewDistances,
 };
 use veloren_common_net::{msg::InviteAnswer, sync::WorldSyncExt};
 
+const COINS: &str = "common.items.utility.coins";
+
+enum TradeMode {
+    Take,
+    Buy,
+    Sell,
+}
+
 pub struct Bot {
+    username: String,
     client: Client,
     clock: Clock,
-    last_announcement: Instant,
+    buy_prices: HashMap<String, u32>,
+    sell_prices: HashMap<String, u32>,
+    last_action: Instant,
+    trade_mode: TradeMode,
 }
 
 impl Bot {
-    pub fn new(username: &str, password: &str) -> Result<Self, String> {
-        let client = connect_to_veloren(username, password)?;
+    pub fn new(
+        username: String,
+        password: &str,
+        buy_prices: HashMap<String, u32>,
+        sell_prices: HashMap<String, u32>,
+    ) -> Result<Self, String> {
+        let client = connect_to_veloren(&username, password)?;
         let clock = Clock::new(Duration::from_secs_f64(1.0 / 60.0));
 
         Ok(Bot {
+            username,
             client,
             clock,
-            last_announcement: Instant::now(),
+            buy_prices,
+            sell_prices,
+            last_action: Instant::from(0),
+            trade_mode: TradeMode::Sell,
         })
     }
 
@@ -69,137 +95,214 @@ impl Bot {
         Ok(())
     }
 
-    pub fn announce(&mut self) {
-        self.client.send_command(
-            "say".to_string(),
-            vec![
-                "Buying cheese! Type '/say trade' near me and place your cheese in the window."
-                    .to_string(),
-            ],
-        );
-    }
-
     pub fn tick(&mut self) -> Result<(), String> {
-        let events = self
+        let veloren_events = self
             .client
             .tick(ControllerInputs::default(), self.clock.dt())
             .map_err(|error| format!("{error:?}"))?;
 
-        for event in events {
-            self.handle_event(event)?;
+        for event in veloren_events {
+            self.handle_veloren_event(event)?;
         }
 
-        let now = Instant::now();
-
-        if now.duration_since(self.last_announcement) > Duration::from_secs(100) {
-            self.announce();
-
-            self.last_announcement = now;
+        if self.last_action.elapsed() > Duration::from_millis(100) {
+            if let Some((_, trade, _)) = self.client.pending_trade() {
+                match self.trade_mode {
+                    TradeMode::Buy => self.handle_buying(trade)?,
+                    TradeMode::Take => self.handle_take(trade),
+                    TradeMode::Sell => self.handle_selling(trade)?,
+                }
+            }
         }
 
-        self.handle_trading()?;
         self.client.cleanup();
         self.clock.tick();
 
         Ok(())
     }
 
-    fn handle_event(&mut self, event: Event) -> Result<(), String> {
-        match event {
-            Event::Chat(message) => match message.chat_type {
+    fn handle_veloren_event(&mut self, event: VelorenEvent) -> Result<(), String> {
+        if let VelorenEvent::Chat(message) = event {
+            let content = message.content().as_plain().unwrap_or_default();
+
+            if !content.starts_with(&self.username) {
+                return Ok(());
+            }
+
+            match message.chat_type {
                 ChatType::Tell(sender_uid, _) | ChatType::Say(sender_uid) => {
-                    if message.content().as_plain() == Some("trade") && !self.client.is_trading() {
-                        self.client.send_invite(sender_uid, InviteKind::Trade);
-                    }
-                }
-                _ => {}
-            },
-            Event::InviteComplete {
-                target,
-                answer,
-                kind,
-            } => {
-                if let InviteKind::Trade = kind {
-                    if let InviteAnswer::Accepted = answer {
-                        if let Some(name) = self.find_name(&target) {
-                            self.client.send_command(
-                                "say".to_string(),
-                                vec![format!("Trading with {name}")],
-                            );
+                    if !self.client.is_trading() {
+                        match content.trim_start_matches(&self.username).trim() {
+                            "buy" => {
+                                self.trade_mode = TradeMode::Buy;
+                                self.client.send_invite(sender_uid, InviteKind::Trade);
+                            }
+                            "sell" => {
+                                self.trade_mode = TradeMode::Sell;
+                                self.client.send_invite(sender_uid, InviteKind::Trade);
+                            }
+                            "take" => {
+                                self.trade_mode = TradeMode::Take;
+                                self.client.send_invite(sender_uid, InviteKind::Trade);
+                            }
+                            _ => {}
                         }
                     }
                 }
+                _ => {}
             }
-            _ => {}
         }
 
         Ok(())
     }
 
-    fn handle_trading(&mut self) -> Result<(), String> {
-        if let Some((_, trade, _)) = self.client.pending_trade() {
-            let inventories = self.client.inventories();
-            let my_inventory = inventories.get(self.client.entity()).unwrap();
-            let my_coins = my_inventory.get_slot_of_item_by_def_id(&ItemDefinitionIdOwned::Simple(
-                "common.items.utility.coins".to_string(),
-            ));
-            let them = self
-                .client
-                .state()
-                .ecs()
-                .entity_from_uid(trade.parties[1])
-                .unwrap();
-            let their_inventory = inventories.get(them).unwrap();
-            let their_offered_items_value =
-                (&trade.offers[1])
-                    .into_iter()
-                    .fold(0, |acc, (slot_id, quantity)| {
-                        if let Some(item) = their_inventory.get(slot_id.clone()) {
-                            acc + (get_item_value(item) * quantity)
-                        } else {
-                            acc
-                        }
-                    });
-            let my_offered_coins = (&trade.offers[0])
+    fn handle_buying(&mut self, trade: &PendingTrade) -> Result<(), String> {
+        let inventories = self.client.inventories();
+        let my_inventory = inventories.get(self.client.entity()).unwrap();
+        let my_coins = my_inventory.get_slot_of_item_by_def_id(&ItemDefinitionIdOwned::Simple(
+            "common.items.utility.coins".to_string(),
+        ));
+        let them = self
+            .client
+            .state()
+            .ecs()
+            .entity_from_uid(trade.parties[1])
+            .unwrap();
+        let their_inventory = inventories.get(them).unwrap();
+        let their_offered_items_value =
+            (&trade.offers[1])
                 .into_iter()
-                .find_map(|(slot_id, quantity)| {
-                    let item = my_inventory.get(slot_id.clone()).unwrap();
+                .fold(0, |acc, (slot_id, quantity)| {
+                    if let Some(item) = their_inventory.get(slot_id.clone()) {
+                        let item_value = self
+                            .buy_prices
+                            .get(&item.persistence_item_id())
+                            .unwrap_or(&1);
 
-                    if item.item_definition_id()
-                        == ItemDefinitionId::Simple("common.items.utility.coins".into())
-                    {
-                        Some(quantity)
+                        acc + (item_value * quantity)
                     } else {
-                        None
+                        acc
                     }
-                })
-                .unwrap_or(&0);
-
-            let difference: i32 = their_offered_items_value as i32 - *my_offered_coins as i32;
-
-            drop(inventories);
-
-            if difference == 0 {
-                self.client
-                    .perform_trade_action(TradeAction::Accept(trade.phase));
-            } else if difference.is_positive() {
-                self.client.perform_trade_action(TradeAction::AddItem {
-                    item: my_coins.unwrap(),
-                    quantity: difference as u32,
-                    ours: true,
                 });
-            } else if difference.is_negative() {
-                self.client.perform_trade_action(TradeAction::RemoveItem {
-                    item: my_coins.unwrap(),
-                    quantity: difference.abs() as u32,
-                    ours: true,
-                });
-            }
+        let my_offered_coins = (&trade.offers[0])
+            .into_iter()
+            .find_map(|(slot_id, quantity)| {
+                let item = if let Some(item) = my_inventory.get(slot_id.clone()) {
+                    item
+                } else {
+                    return None;
+                };
 
-            thread::sleep(Duration::from_millis(300));
+                if item.item_definition_id()
+                    == ItemDefinitionId::Simple("common.items.utility.coins".into())
+                {
+                    Some(quantity)
+                } else {
+                    None
+                }
+            })
+            .unwrap_or(&0);
+        let difference: i32 = their_offered_items_value as i32 - *my_offered_coins as i32;
+
+        drop(inventories);
+
+        if difference == 0 {
+            self.client
+                .perform_trade_action(TradeAction::Accept(trade.phase));
+        } else if difference.is_positive() {
+            self.client.perform_trade_action(TradeAction::AddItem {
+                item: my_coins.unwrap(),
+                quantity: difference as u32,
+                ours: true,
+            });
+        } else if difference.is_negative() {
+            self.client.perform_trade_action(TradeAction::RemoveItem {
+                item: my_coins.unwrap(),
+                quantity: difference.abs() as u32,
+                ours: true,
+            });
         }
 
         Ok(())
+    }
+
+    fn handle_selling(&mut self, trade: &PendingTrade) -> Result<(), String> {
+        let inventories = self.client.inventories();
+        let my_inventory = inventories.get(self.client.entity()).unwrap();
+        let them = self
+            .client
+            .state()
+            .ecs()
+            .entity_from_uid(trade.parties[1])
+            .unwrap();
+        let their_inventory = inventories.get(them).unwrap();
+        let their_coins = their_inventory.get_slot_of_item_by_def_id(
+            &ItemDefinitionIdOwned::Simple("common.items.utility.coins".to_string()),
+        );
+        let my_offered_items_value =
+            (&trade.offers[0])
+                .into_iter()
+                .fold(0, |acc, (slot_id, quantity)| {
+                    if let Some(item) = my_inventory.get(slot_id.clone()) {
+                        println!("{}", item.persistence_item_id());
+
+                        let item_value = self
+                            .sell_prices
+                            .get(&item.persistence_item_id())
+                            .unwrap_or(&0);
+
+                        acc + (item_value * quantity)
+                    } else {
+                        acc
+                    }
+                });
+        let their_offered_coins = (&trade.offers[1])
+            .into_iter()
+            .find_map(|(slot_id, quantity)| {
+                let item = if let Some(item) = their_inventory.get(slot_id.clone()) {
+                    item
+                } else {
+                    return None;
+                };
+
+                if item.item_definition_id()
+                    == ItemDefinitionId::Simple("common.items.utility.coins".into())
+                {
+                    Some(quantity)
+                } else {
+                    None
+                }
+            })
+            .unwrap_or(&0);
+        let difference: i32 = my_offered_items_value as i32 - *their_offered_coins as i32;
+
+        drop(inventories);
+
+        if difference == 0 {
+            self.client
+                .perform_trade_action(TradeAction::Accept(trade.phase));
+        } else if difference.is_positive() {
+            self.client.perform_trade_action(TradeAction::AddItem {
+                item: their_coins.unwrap(),
+                quantity: difference as u32,
+                ours: false,
+            });
+        } else if difference.is_negative() {
+            self.client.perform_trade_action(TradeAction::RemoveItem {
+                item: their_coins.unwrap(),
+                quantity: difference.abs() as u32,
+                ours: false,
+            });
+        }
+
+        Ok(())
+    }
+
+    fn handle_take(&self, trade: &PendingTrade) {
+        if trade.offers[0].is_empty() && !trade.offers[1].is_empty() {
+            self.client
+                .perform_trade_action(TradeAction::Accept(trade.phase));
+        }
     }
 
     fn find_name<'a>(&'a self, uid: &Uid) -> Option<&'a String> {
@@ -255,11 +358,4 @@ fn connect_to_veloren(username: &str, password: &str) -> Result<Client, String> 
             Default::default(),
         ))
         .map_err(|error| format!("{error:?}"))
-}
-
-fn get_item_value(item: &Item) -> u32 {
-    match item.name().as_ref() {
-        "Dwarven Cheese" => 50,
-        _ => 0,
-    }
 }

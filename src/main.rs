@@ -1,8 +1,10 @@
 mod bot;
 
 use std::{
+    collections::HashMap,
     env::var,
     fs::{read_to_string, write},
+    sync::{Arc, Mutex},
     thread::{sleep, spawn},
     time::Duration,
 };
@@ -14,6 +16,8 @@ use serde::{Deserialize, Serialize};
 struct Config {
     pub username: String,
     pub password: String,
+    pub buy_prices: HashMap<String, u32>,
+    pub sell_prices: HashMap<String, u32>,
 }
 
 impl Config {
@@ -34,7 +38,13 @@ impl Config {
 
 fn main() {
     let config = Config::read().unwrap();
-    let mut bot = Bot::new(&config.username, &config.password).expect("Failed to create bot");
+    let mut bot = Bot::new(
+        config.username,
+        &config.password,
+        config.buy_prices,
+        config.sell_prices,
+    )
+    .expect("Failed to create bot");
 
     bot.select_character().expect("Failed to select character");
 

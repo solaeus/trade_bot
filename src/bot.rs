@@ -99,8 +99,8 @@ impl Bot {
         self.client.request_character(
             character_id,
             ViewDistances {
-                terrain: 0,
-                entity: 0,
+                terrain: 4,
+                entity: 4,
             },
         );
 
@@ -146,9 +146,9 @@ impl Bot {
             self.last_action = Instant::now();
         }
 
-        if self.last_announcement.elapsed() > Duration::from_secs(1800) {
+        if self.last_announcement.elapsed() > Duration::from_secs(600) {
             self.client.send_command(
-                "say".to_string(),
+                "region".to_string(),
                 vec![
                     "I'm a bot. Use /say or /tell to give commands: 'buy', 'sell' or 'prices'."
                         .to_string(),

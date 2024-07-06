@@ -15,9 +15,9 @@ FROM fedora:40
 
 WORKDIR /app
 
-COPY --from=build /app/target/release/group-bot group-bot
+COPY --from=build /app/target/release/trade-bot trade-bot
 COPY assets/ assets/
 
-RUN chmod +x group-bot
+RUN chmod +x trade-bot
 
-CMD ["./group-bot"]
+CMD ["./trade-bot"]

@@ -6,7 +6,7 @@ use std::{
         Arc, Mutex,
     },
     thread,
-    time::{Duration, Instant},
+    time::{self, Duration, Instant, UNIX_EPOCH},
 };
 
 use serde::Serialize;
@@ -48,6 +48,7 @@ pub struct Bot {
     buy_prices: HashMap<String, u32>,
     sell_prices: HashMap<String, u32>,
     last_action: Instant,
+    last_announcement: Instant,
     trade_mode: TradeMode,
 }
 
@@ -70,7 +71,8 @@ impl Bot {
             buy_prices,
             sell_prices,
             last_action: Instant::now(),
-            trade_mode: TradeMode::Sell,
+            last_announcement: Instant::now(),
+            trade_mode: TradeMode::Buy,
         })
     }
 
@@ -144,6 +146,18 @@ impl Bot {
             self.last_action = Instant::now();
         }
 
+        if self.last_announcement.elapsed() > Duration::from_secs(1800) {
+            self.client.send_command(
+                "say".to_string(),
+                vec![
+                    "I'm a bot. Use /say or /tell to give commands: 'buy', 'sell' or 'prices'."
+                        .to_string(),
+                ],
+            );
+
+            self.last_announcement = Instant::now();
+        }
+
         self.clock.tick();
 
         Ok(())
@@ -154,14 +168,10 @@ impl Bot {
             VelorenEvent::Chat(message) => {
                 let content = message.content().as_plain().unwrap_or_default();
 
-                if !content.starts_with(&self.username) {
-                    return Ok(());
-                }
-
                 match message.chat_type {
                     ChatType::Tell(sender_uid, _) | ChatType::Say(sender_uid) => {
                         if !self.client.is_trading() {
-                            match content.trim_start_matches(&self.username).trim() {
+                            match content.trim() {
                                 "buy" => {
                                     self.trade_mode = TradeMode::Buy;
                                     self.client.send_invite(sender_uid, InviteKind::Trade);
@@ -174,31 +184,35 @@ impl Bot {
                                     self.trade_mode = TradeMode::Take;
                                     self.client.send_invite(sender_uid, InviteKind::Trade);
                                 }
-                                "prices" => {
-                                    let player_name = self
-                                        .find_name(&sender_uid)
-                                        .ok_or("Failed to find player name")?
-                                        .to_string();
-
-                                    self.client.send_command(
-                                        "tell".to_string(),
-                                        vec![
-                                            player_name.clone(),
-                                            format!("Buy prices: {:?}", self.buy_prices),
-                                        ],
-                                    );
-                                    self.client.send_command(
-                                        "tell".to_string(),
-                                        vec![
-                                            player_name,
-                                            format!("Sell prices: {:?}", self.sell_prices),
-                                        ],
-                                    );
-                                }
                                 _ => {}
                             }
                         }
+                        match content.trim() {
+                            "prices" => {
+                                let player_name = self
+                                    .find_name(&sender_uid)
+                                    .ok_or("Failed to find player name")?
+                                    .to_string();
+
+                                self.client.send_command(
+                                    "tell".to_string(),
+                                    vec![
+                                        player_name.clone(),
+                                        format!("Buy prices: {:?}", self.buy_prices),
+                                    ],
+                                );
+                                self.client.send_command(
+                                    "tell".to_string(),
+                                    vec![
+                                        player_name,
+                                        format!("Sell prices: {:?}", self.sell_prices),
+                                    ],
+                                );
+                            }
+                            _ => {}
+                        }
                     }
+
                     _ => {}
                 }
             }
@@ -223,6 +237,17 @@ impl Bot {
     }
 
     fn handle_buy(&mut self, trade: PendingTrade) -> Result<(), String> {
+        let (my_offer, their_offer) = {
+            let my_offer_index = trade
+                .which_party(self.client.uid().ok_or("Failed to get uid")?)
+                .ok_or("Failed to get offer index")?;
+            let their_offer_index = if my_offer_index == 0 { 1 } else { 0 };
+
+            (
+                &trade.offers[my_offer_index],
+                &trade.offers[their_offer_index],
+            )
+        };
         let inventories = self.client.inventories();
         let my_inventory = inventories.get(self.client.entity()).unwrap();
         let my_coins = my_inventory
@@ -238,21 +263,19 @@ impl Bot {
             .get(them)
             .ok_or("Failed to find inventory".to_string())?;
         let their_offered_items_value =
-            (&trade.offers[1])
-                .into_iter()
-                .fold(0, |acc, (slot_id, quantity)| {
-                    if let Some(item) = their_inventory.get(slot_id.clone()) {
-                        let item_value = self
-                            .buy_prices
-                            .get(&item.persistence_item_id())
-                            .unwrap_or(&1);
+            their_offer.into_iter().fold(0, |acc, (slot_id, quantity)| {
+                if let Some(item) = their_inventory.get(slot_id.clone()) {
+                    let item_value = self
+                        .buy_prices
+                        .get(&item.persistence_item_id())
+                        .unwrap_or(&1);
 
-                        acc + (item_value * quantity)
-                    } else {
-                        acc
-                    }
-                });
-        let my_offered_coins = (&trade.offers[0])
+                    acc + (item_value * quantity)
+                } else {
+                    acc
+                }
+            });
+        let my_offered_coins = my_offer
             .into_iter()
             .find_map(|(slot_id, quantity)| {
                 let item = if let Some(item) = my_inventory.get(slot_id.clone()) {
@@ -272,7 +295,7 @@ impl Bot {
 
         let mut my_items_to_remove = Vec::new();
 
-        for (item_id, quantity) in &trade.offers[0] {
+        for (item_id, quantity) in my_offer {
             let item = my_inventory
                 .get(item_id.clone())
                 .ok_or("Failed to find item".to_string())?;
@@ -284,7 +307,7 @@ impl Bot {
 
         let mut their_items_to_remove = Vec::new();
 
-        for (item_id, quantity) in &trade.offers[1] {
+        for (item_id, quantity) in their_offer {
             let item = their_inventory
                 .get(item_id.clone())
                 .ok_or("Failed to find item".to_string())?;
@@ -333,6 +356,17 @@ impl Bot {
     }
 
     fn handle_sell(&mut self, trade: PendingTrade) -> Result<(), String> {
+        let (my_offer, their_offer) = {
+            let my_offer_index = trade
+                .which_party(self.client.uid().ok_or("Failed to get uid")?)
+                .ok_or("Failed to get offer index")?;
+            let their_offer_index = if my_offer_index == 0 { 1 } else { 0 };
+
+            (
+                &trade.offers[my_offer_index],
+                &trade.offers[their_offer_index],
+            )
+        };
         let inventories = self.client.inventories();
         let my_inventory = inventories.get(self.client.entity()).unwrap();
         let them = self
@@ -347,22 +381,19 @@ impl Bot {
         let their_coins = their_inventory
             .get_slot_of_item_by_def_id(&ItemDefinitionIdOwned::Simple(COINS.to_string()))
             .ok_or("Failed to find coins")?;
-        let my_offered_items_value =
-            (&trade.offers[0])
-                .into_iter()
-                .fold(0, |acc, (slot_id, quantity)| {
-                    if let Some(item) = my_inventory.get(slot_id.clone()) {
-                        let item_value = self
-                            .sell_prices
-                            .get(&item.persistence_item_id())
-                            .unwrap_or(&0);
+        let my_offered_items_value = my_offer.into_iter().fold(0, |acc, (slot_id, quantity)| {
+            if let Some(item) = my_inventory.get(slot_id.clone()) {
+                let item_value = self
+                    .sell_prices
+                    .get(&item.persistence_item_id())
+                    .unwrap_or(&0);
 
-                        acc + (item_value * quantity)
-                    } else {
-                        acc
-                    }
-                });
-        let their_offered_coins = (&trade.offers[1])
+                acc + (item_value * quantity)
+            } else {
+                acc
+            }
+        });
+        let their_offered_coins = their_offer
             .into_iter()
             .find_map(|(slot_id, quantity)| {
                 let item = if let Some(item) = their_inventory.get(slot_id.clone()) {
@@ -384,7 +415,7 @@ impl Bot {
 
         let mut their_items_to_remove = Vec::new();
 
-        for (item_id, quantity) in &trade.offers[1] {
+        for (item_id, quantity) in their_offer {
             let item = their_inventory
                 .get(item_id.clone())
                 .ok_or("Failed to find item".to_string())?;
@@ -398,7 +429,7 @@ impl Bot {
 
         let mut my_items_to_remove = Vec::new();
 
-        for (item_id, quantity) in &trade.offers[0] {
+        for (item_id, quantity) in my_offer {
             let item = my_inventory
                 .get(item_id.clone())
                 .ok_or("Failed to find item".to_string())?;

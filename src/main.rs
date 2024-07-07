@@ -4,9 +4,6 @@ use std::{
     collections::HashMap,
     env::var,
     fs::{read_to_string, write},
-    sync::{Arc, Mutex},
-    thread::{sleep, spawn},
-    time::Duration,
 };
 
 use bot::Bot;
@@ -29,7 +26,7 @@ impl Config {
         toml::from_str::<Config>(&config_file_content).map_err(|error| error.to_string())
     }
 
-    fn write(&self) -> Result<(), String> {
+    fn _write(&self) -> Result<(), String> {
         let config_path = var("CONFIG_PATH").map_err(|error| error.to_string())?;
         let config_string = toml::to_string(self).map_err(|error| error.to_string())?;
 
@@ -38,6 +35,8 @@ impl Config {
 }
 
 fn main() {
+    env_logger::init();
+
     let config = Config::read().unwrap();
     let mut bot = Bot::new(
         config.username,
@@ -51,6 +50,6 @@ fn main() {
     bot.select_character().expect("Failed to select character");
 
     loop {
-        bot.tick().inspect_err(|error| eprintln!("{error}"));
+        let _ = bot.tick().inspect_err(|error| eprintln!("{error}"));
     }
 }

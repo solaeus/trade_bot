@@ -1,47 +1,29 @@
 use std::{
-    borrow::{Borrow, BorrowMut},
     collections::HashMap,
-    sync::{
-        mpsc::{self, Receiver, Sender},
-        Arc, Mutex,
-    },
-    thread,
-    time::{self, Duration, Instant, UNIX_EPOCH},
+    sync::Arc,
+    time::{Duration, Instant},
 };
 
-use serde::Serialize;
 use tokio::runtime::Runtime;
 use veloren_client::{addr::ConnectionArgs, Client, Event as VelorenEvent, WorldExt};
 use veloren_common::{
     clock::Clock,
-    comp::{
-        self,
-        character_state::CharacterStateEventEmitters,
-        invite::InviteKind,
-        item::{self, ItemDefinitionId, ItemDefinitionIdOwned, ItemDesc},
-        CharacterState, ChatType, Controller, ControllerInputs, InputKind, Item, Pos,
-    },
-    event::{EmitExt, EventBus},
+    comp::{invite::InviteKind, item::ItemDefinitionIdOwned, ChatType, ControllerInputs, Pos},
     outcome::Outcome,
-    trade::{PendingTrade, TradeAction, TradePhase},
+    trade::{PendingTrade, TradeAction},
     uid::Uid,
     ViewDistances,
 };
-use veloren_common_net::{
-    msg::{InviteAnswer, Notification},
-    sync::WorldSyncExt,
-};
+use veloren_common_net::sync::WorldSyncExt;
 
 const COINS: &str = "common.items.utility.coins";
 
 enum TradeMode {
     Take,
-    Buy,
-    Sell,
+    Trade,
 }
 
 pub struct Bot {
-    username: String,
     position: [f32; 3],
     client: Client,
     clock: Clock,
@@ -49,6 +31,7 @@ pub struct Bot {
     sell_prices: HashMap<String, u32>,
     last_action: Instant,
     last_announcement: Instant,
+    is_player_notified: bool,
     trade_mode: TradeMode,
 }
 
@@ -60,11 +43,12 @@ impl Bot {
         sell_prices: HashMap<String, u32>,
         position: [f32; 3],
     ) -> Result<Self, String> {
+        log::info!("Connecting to veloren");
+
         let client = connect_to_veloren(&username, password)?;
         let clock = Clock::new(Duration::from_secs_f64(1.0 / 60.0));
 
         Ok(Bot {
-            username,
             position,
             client,
             clock,
@@ -72,11 +56,14 @@ impl Bot {
             sell_prices,
             last_action: Instant::now(),
             last_announcement: Instant::now(),
-            trade_mode: TradeMode::Buy,
+            is_player_notified: false,
+            trade_mode: TradeMode::Trade,
         })
     }
 
     pub fn select_character(&mut self) -> Result<(), String> {
+        log::info!("Selecting a character");
+
         self.client.load_character_list();
 
         while self.client.character_list().loading {
@@ -103,6 +90,7 @@ impl Bot {
                 entity: 4,
             },
         );
+        self.client.sort_inventory();
 
         Ok(())
     }
@@ -131,16 +119,24 @@ impl Bot {
                     let entity = self.client.entity().clone();
                     let mut position_state = self.client.state_mut().ecs().write_storage::<Pos>();
 
-                    position_state.insert(entity, Pos(self.position.into()));
+                    position_state
+                        .insert(entity, Pos(self.position.into()))
+                        .map_err(|error| error.to_string())?;
                 }
             }
 
             if let Some((_, trade, _)) = self.client.pending_trade() {
                 match self.trade_mode {
-                    TradeMode::Buy => self.handle_buy(trade.clone())?,
+                    TradeMode::Trade => self.handle_trade(trade.clone())?,
                     TradeMode::Take => self.handle_take(trade.clone()),
-                    TradeMode::Sell => self.handle_sell(trade.clone())?,
                 }
+            }
+
+            if !self.client.is_trading() {
+                self.trade_mode = TradeMode::Trade;
+                self.is_player_notified = false;
+
+                self.client.accept_invite();
             }
 
             self.last_action = Instant::now();
@@ -149,10 +145,7 @@ impl Bot {
         if self.last_announcement.elapsed() > Duration::from_secs(600) {
             self.client.send_command(
                 "region".to_string(),
-                vec![
-                    "I'm a bot. Use /say or /tell to give commands: 'buy', 'sell' or 'prices'."
-                        .to_string(),
-                ],
+                vec!["I'm a bot. Trade with me or say 'prices' to see my offers.".to_string()],
             );
 
             self.last_announcement = Instant::now();
@@ -170,44 +163,13 @@ impl Bot {
 
                 match message.chat_type {
                     ChatType::Tell(sender_uid, _) | ChatType::Say(sender_uid) => {
-                        if !self.client.is_trading() {
-                            match content.trim() {
-                                "buy" => {
-                                    self.trade_mode = TradeMode::Buy;
-                                    self.client.send_invite(sender_uid, InviteKind::Trade);
-                                }
-                                "sell" => {
-                                    self.trade_mode = TradeMode::Sell;
-                                    self.client.send_invite(sender_uid, InviteKind::Trade);
-                                }
-                                "take" => {
+                        match content.trim() {
+                            "prices" => self.send_price_info(&sender_uid)?,
+                            "take" => {
+                                if !self.client.is_trading() {
                                     self.trade_mode = TradeMode::Take;
                                     self.client.send_invite(sender_uid, InviteKind::Trade);
                                 }
-                                _ => {}
-                            }
-                        }
-                        match content.trim() {
-                            "prices" => {
-                                let player_name = self
-                                    .find_name(&sender_uid)
-                                    .ok_or("Failed to find player name")?
-                                    .to_string();
-
-                                self.client.send_command(
-                                    "tell".to_string(),
-                                    vec![
-                                        player_name.clone(),
-                                        format!("Buy prices: {:?}", self.buy_prices),
-                                    ],
-                                );
-                                self.client.send_command(
-                                    "tell".to_string(),
-                                    vec![
-                                        player_name,
-                                        format!("Sell prices: {:?}", self.sell_prices),
-                                    ],
-                                );
                             }
                             _ => {}
                         }
@@ -217,11 +179,8 @@ impl Bot {
                 }
             }
             VelorenEvent::Outcome(Outcome::ProjectileHit {
-                pos,
-                body,
-                vel,
-                source,
                 target: Some(target),
+                ..
             }) => {
                 if let Some(uid) = self.client.uid() {
                     if uid == target {
@@ -236,16 +195,20 @@ impl Bot {
         Ok(())
     }
 
-    fn handle_buy(&mut self, trade: PendingTrade) -> Result<(), String> {
-        let (my_offer, their_offer) = {
-            let my_offer_index = trade
-                .which_party(self.client.uid().ok_or("Failed to get uid")?)
-                .ok_or("Failed to get offer index")?;
-            let their_offer_index = if my_offer_index == 0 { 1 } else { 0 };
-
+    fn handle_trade(&mut self, trade: PendingTrade) -> Result<(), String> {
+        let my_offer_index = trade
+            .which_party(self.client.uid().ok_or("Failed to get uid")?)
+            .ok_or("Failed to get offer index")?;
+        let their_offer_index = if my_offer_index == 0 { 1 } else { 0 };
+        let (my_offer, their_offer, them) = {
             (
                 &trade.offers[my_offer_index],
                 &trade.offers[their_offer_index],
+                self.client
+                    .state()
+                    .ecs()
+                    .entity_from_uid(trade.parties[their_offer_index])
+                    .ok_or("Failed to find player".to_string())?,
             )
         };
         let inventories = self.client.inventories();
@@ -253,225 +216,204 @@ impl Bot {
         let my_coins = my_inventory
             .get_slot_of_item_by_def_id(&ItemDefinitionIdOwned::Simple(COINS.to_string()))
             .ok_or("Failed to find coins".to_string())?;
-        let them = self
-            .client
-            .state()
-            .ecs()
-            .entity_from_uid(trade.parties[1])
-            .ok_or("Failed to find player".to_string())?;
-        let their_inventory = inventories
-            .get(them)
-            .ok_or("Failed to find inventory".to_string())?;
-        let their_offered_items_value =
-            their_offer.into_iter().fold(0, |acc, (slot_id, quantity)| {
-                if let Some(item) = their_inventory.get(slot_id.clone()) {
-                    let item_value = self
-                        .buy_prices
-                        .get(&item.persistence_item_id())
-                        .unwrap_or(&1);
-
-                    acc + (item_value * quantity)
-                } else {
-                    acc
-                }
-            });
-        let my_offered_coins = my_offer
-            .into_iter()
-            .find_map(|(slot_id, quantity)| {
-                let item = if let Some(item) = my_inventory.get(slot_id.clone()) {
-                    item
-                } else {
-                    return None;
-                };
-
-                if item.item_definition_id() == ItemDefinitionId::Simple(COINS.into()) {
-                    Some(quantity)
-                } else {
-                    None
-                }
-            })
-            .unwrap_or(&0);
-        let difference: i32 = their_offered_items_value as i32 - *my_offered_coins as i32;
-
-        let mut my_items_to_remove = Vec::new();
-
-        for (item_id, quantity) in my_offer {
-            let item = my_inventory
-                .get(item_id.clone())
-                .ok_or("Failed to find item".to_string())?;
-
-            if item.item_definition_id() != ItemDefinitionId::Simple(COINS.into()) {
-                my_items_to_remove.push((item_id.clone(), *quantity));
-            }
-        }
-
-        let mut their_items_to_remove = Vec::new();
-
-        for (item_id, quantity) in their_offer {
-            let item = their_inventory
-                .get(item_id.clone())
-                .ok_or("Failed to find item".to_string())?;
-
-            if !self.buy_prices.contains_key(&item.persistence_item_id()) {
-                their_items_to_remove.push((item_id.clone(), *quantity));
-            }
-        }
-
-        drop(inventories);
-
-        for (item, quantity) in my_items_to_remove {
-            self.client.perform_trade_action(TradeAction::RemoveItem {
-                item,
-                quantity,
-                ours: true,
-            });
-        }
-
-        for (item, quantity) in their_items_to_remove {
-            self.client.perform_trade_action(TradeAction::RemoveItem {
-                item,
-                quantity,
-                ours: false,
-            });
-        }
-
-        if difference == 0 {
-            self.client
-                .perform_trade_action(TradeAction::Accept(trade.phase));
-        } else if difference.is_positive() {
-            self.client.perform_trade_action(TradeAction::AddItem {
-                item: my_coins,
-                quantity: difference as u32,
-                ours: true,
-            });
-        } else if difference.is_negative() {
-            self.client.perform_trade_action(TradeAction::RemoveItem {
-                item: my_coins,
-                quantity: difference.abs() as u32,
-                ours: true,
-            });
-        }
-
-        Ok(())
-    }
-
-    fn handle_sell(&mut self, trade: PendingTrade) -> Result<(), String> {
-        let (my_offer, their_offer) = {
-            let my_offer_index = trade
-                .which_party(self.client.uid().ok_or("Failed to get uid")?)
-                .ok_or("Failed to get offer index")?;
-            let their_offer_index = if my_offer_index == 0 { 1 } else { 0 };
-
-            (
-                &trade.offers[my_offer_index],
-                &trade.offers[their_offer_index],
-            )
-        };
-        let inventories = self.client.inventories();
-        let my_inventory = inventories.get(self.client.entity()).unwrap();
-        let them = self
-            .client
-            .state()
-            .ecs()
-            .entity_from_uid(trade.parties[1])
-            .ok_or("Failed to find player".to_string())?;
         let their_inventory = inventories
             .get(them)
             .ok_or("Failed to find inventory".to_string())?;
         let their_coins = their_inventory
             .get_slot_of_item_by_def_id(&ItemDefinitionIdOwned::Simple(COINS.to_string()))
             .ok_or("Failed to find coins")?;
-        let my_offered_items_value = my_offer.into_iter().fold(0, |acc, (slot_id, quantity)| {
-            if let Some(item) = my_inventory.get(slot_id.clone()) {
-                let item_value = self
-                    .sell_prices
-                    .get(&item.persistence_item_id())
-                    .unwrap_or(&0);
+        let their_total_coin_amount = their_inventory
+            .get(their_coins)
+            .map(|item| item.amount() as i32)
+            .unwrap_or(0);
+        let (mut their_offered_coin_amount, mut my_offered_coin_amount) = (0, 0);
+        let their_offered_items_value =
+            their_offer
+                .into_iter()
+                .fold(0, |acc: i32, (slot_id, quantity)| {
+                    if let Some(item) = their_inventory.get(slot_id.clone()) {
+                        let item_id = item.persistence_item_id();
 
-                acc + (item_value * quantity)
-            } else {
-                acc
-            }
-        });
-        let their_offered_coins = their_offer
-            .into_iter()
-            .find_map(|(slot_id, quantity)| {
-                let item = if let Some(item) = their_inventory.get(slot_id.clone()) {
-                    item
-                } else {
-                    return None;
-                };
+                        let item_value = if item_id == COINS {
+                            their_offered_coin_amount = *quantity as i32;
 
-                if item.item_definition_id()
-                    == ItemDefinitionId::Simple("common.items.utility.coins".into())
-                {
-                    Some(quantity)
-                } else {
-                    None
-                }
-            })
-            .unwrap_or(&0);
-        let difference: i32 = my_offered_items_value as i32 - *their_offered_coins as i32;
+                            1
+                        } else {
+                            self.buy_prices
+                                .get(&item_id)
+                                .map(|int| *int as i32)
+                                .unwrap_or_else(|| {
+                                    self.sell_prices
+                                        .get(&item_id)
+                                        .map(|int| 0 - *int as i32)
+                                        .unwrap_or(0)
+                                })
+                        };
 
-        let mut their_items_to_remove = Vec::new();
+                        acc.saturating_add(item_value.saturating_mul(*quantity as i32))
+                    } else {
+                        acc
+                    }
+                });
+        let my_offered_items_value =
+            my_offer
+                .into_iter()
+                .fold(0, |acc: i32, (slot_id, quantity)| {
+                    if let Some(item) = my_inventory.get(slot_id.clone()) {
+                        let item_id = item.persistence_item_id();
 
-        for (item_id, quantity) in their_offer {
-            let item = their_inventory
-                .get(item_id.clone())
-                .ok_or("Failed to find item".to_string())?;
+                        let item_value = if item_id == COINS {
+                            my_offered_coin_amount = *quantity as i32;
 
-            if item.item_definition_id()
-                != ItemDefinitionId::Simple("common.items.utility.coins".into())
-            {
-                their_items_to_remove.push((item_id.clone(), *quantity));
-            }
-        }
+                            1
+                        } else {
+                            self.sell_prices
+                                .get(&item_id)
+                                .map(|int| *int as i32)
+                                .unwrap_or_else(|| {
+                                    self.buy_prices
+                                        .get(&item_id)
+                                        .map(|int| 0 - *int as i32)
+                                        .unwrap_or(i32::MAX)
+                                })
+                        };
+
+                        acc.saturating_add(item_value.saturating_mul(*quantity as i32))
+                    } else {
+                        acc
+                    }
+                });
 
         let mut my_items_to_remove = Vec::new();
 
-        for (item_id, quantity) in my_offer {
+        for (slot_id, amount) in my_offer {
             let item = my_inventory
-                .get(item_id.clone())
-                .ok_or("Failed to find item".to_string())?;
+                .get(slot_id.clone())
+                .ok_or("Failed to get item")?;
+            let item_id = item.persistence_item_id();
 
-            if !self.sell_prices.contains_key(&item.persistence_item_id()) {
-                my_items_to_remove.push((item_id.clone(), *quantity));
+            if item_id == COINS {
+                continue;
+            }
+
+            if !self.sell_prices.contains_key(&item_id) {
+                my_items_to_remove.push((slot_id.clone(), *amount));
+            }
+        }
+
+        let mut their_items_to_remove = Vec::new();
+
+        for (slot_id, amount) in their_offer {
+            let item = their_inventory
+                .get(slot_id.clone())
+                .ok_or("Failed to get item")?;
+
+            let item_id = item.persistence_item_id();
+
+            if item_id == COINS {
+                continue;
+            }
+
+            if !self.buy_prices.contains_key(&item_id) {
+                their_items_to_remove.push((slot_id.clone(), *amount));
             }
         }
 
         drop(inventories);
 
-        for (item, quantity) in their_items_to_remove {
-            self.client.perform_trade_action(TradeAction::RemoveItem {
-                item,
-                quantity,
-                ours: false,
-            });
+        if !self.is_player_notified {
+            self.send_price_info(&trade.parties[their_offer_index])?;
+
+            self.is_player_notified = true;
         }
 
-        for (item, quantity) in my_items_to_remove {
-            self.client.perform_trade_action(TradeAction::RemoveItem {
-                item,
-                quantity,
-                ours: true,
-            });
+        if their_offered_items_value == 0 && my_offered_items_value == 0 {
+            return Ok(());
         }
 
+        if !my_items_to_remove.is_empty() {
+            for (item, quantity) in my_items_to_remove {
+                self.client.perform_trade_action(TradeAction::RemoveItem {
+                    item,
+                    quantity,
+                    ours: true,
+                });
+            }
+
+            return Ok(());
+        }
+
+        if !their_items_to_remove.is_empty() {
+            for (item, quantity) in their_items_to_remove {
+                self.client.perform_trade_action(TradeAction::RemoveItem {
+                    item,
+                    quantity,
+                    ours: false,
+                });
+            }
+
+            return Ok(());
+        }
+
+        if my_offered_items_value > their_total_coin_amount {
+            self.client.send_command(
+                "tell".to_string(),
+                vec![
+                    self.find_name(&trade.parties[their_offer_index])
+                        .ok_or("Failed to get uid")?
+                        .to_string(),
+                    format!("I need {my_offered_items_value} coins or trade value from you."),
+                ],
+            );
+
+            return Ok(());
+        }
+
+        let difference: i32 = their_offered_items_value as i32 - my_offered_items_value as i32;
+
+        // If the trade is balanced
         if difference == 0 {
+            // Accept
             self.client
                 .perform_trade_action(TradeAction::Accept(trade.phase));
+        // If they are offering more
         } else if difference.is_positive() {
-            self.client.perform_trade_action(TradeAction::AddItem {
-                item: their_coins,
-                quantity: difference as u32,
-                ours: false,
-            });
+            // If they are offering coins
+            if their_offered_coin_amount > 0 {
+                // Remove their coins to balance
+                self.client.perform_trade_action(TradeAction::RemoveItem {
+                    item: their_coins,
+                    quantity: difference as u32,
+                    ours: false,
+                });
+            // If they are not offering coins
+            } else {
+                // Add my coins to balanace
+                self.client.perform_trade_action(TradeAction::AddItem {
+                    item: my_coins,
+                    quantity: difference as u32,
+                    ours: true,
+                });
+            }
+        // If I am offering more
         } else if difference.is_negative() {
-            self.client.perform_trade_action(TradeAction::RemoveItem {
-                item: their_coins,
-                quantity: difference.abs() as u32,
-                ours: false,
-            });
+            // If I am offering coins
+            if my_offered_coin_amount > 0 {
+                // Remove my coins to balance
+                self.client.perform_trade_action(TradeAction::RemoveItem {
+                    item: my_coins,
+                    quantity: difference.abs() as u32,
+                    ours: true,
+                });
+            // If I am not offering coins
+            } else {
+                // Add their coins to balance
+                self.client.perform_trade_action(TradeAction::AddItem {
+                    item: their_coins,
+                    quantity: difference.abs() as u32,
+                    ours: false,
+                });
+            }
         }
 
         Ok(())
@@ -482,6 +424,27 @@ impl Bot {
             self.client
                 .perform_trade_action(TradeAction::Accept(trade.phase));
         }
+    }
+
+    fn send_price_info(&mut self, target: &Uid) -> Result<(), String> {
+        let player_name = self
+            .find_name(target)
+            .ok_or("Failed to find player name")?
+            .to_string();
+
+        self.client.send_command(
+            "tell".to_string(),
+            vec![
+                player_name.clone(),
+                format!("Buy prices: {:?}", self.buy_prices),
+            ],
+        );
+        self.client.send_command(
+            "tell".to_string(),
+            vec![player_name, format!("Sell prices: {:?}", self.sell_prices)],
+        );
+
+        Ok(())
     }
 
     fn find_name<'a>(&'a self, uid: &Uid) -> Option<&'a String> {
@@ -495,7 +458,7 @@ impl Bot {
         })
     }
 
-    fn find_uid<'a>(&'a self, name: &str) -> Option<&'a Uid> {
+    fn _find_uid<'a>(&'a self, name: &str) -> Option<&'a Uid> {
         self.client.player_list().iter().find_map(|(id, info)| {
             if info.player_alias == name {
                 Some(id)
@@ -505,7 +468,7 @@ impl Bot {
         })
     }
 
-    fn find_uuid(&self, name: &str) -> Option<String> {
+    fn _find_uuid(&self, name: &str) -> Option<String> {
         self.client.player_list().iter().find_map(|(_, info)| {
             if info.player_alias == name {
                 Some(info.uuid.to_string())

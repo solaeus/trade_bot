@@ -12,7 +12,7 @@ use veloren_common::{
     comp::{invite::InviteKind, item::ItemDefinitionIdOwned, ChatType, ControllerInputs, Ori, Pos},
     outcome::Outcome,
     time::DayPeriod,
-    trade::{PendingTrade, TradeAction},
+    trade::{PendingTrade, TradeAction, TradeResult},
     uid::Uid,
     ViewDistances,
 };
@@ -173,7 +173,7 @@ impl Bot {
                 ..
             }) => {
                 if let Some(uid) = self.client.uid() {
-                    if uid == target && self.last_ouch.elapsed() > Duration::from_secs(1) {
+                    if uid == target && self.last_ouch.elapsed() > Duration::from_secs(2) {
                         self.client
                             .send_command("say".to_string(), vec!["Ouch!".to_string()]);
 
@@ -181,11 +181,37 @@ impl Bot {
                     }
                 }
             }
+            VelorenEvent::Outcome(Outcome::HealthChange { info, .. }) => {
+                if let Some(uid) = self.client.uid() {
+                    if uid == info.target
+                        && info.amount.is_sign_positive()
+                        && self.last_ouch.elapsed() > Duration::from_secs(2)
+                    {
+                        self.client
+                            .send_command("say".to_string(), vec!["That hurt!".to_string()]);
+
+                        self.last_ouch = Instant::now();
+                    }
+                }
+            }
+            VelorenEvent::Outcome(Outcome::Death { .. }) => {
+                self.client
+                    .send_command("say".to_string(), vec!["Really?".to_string()]);
+
+                self.last_ouch = Instant::now();
+            }
             VelorenEvent::TradeComplete { result, .. } => {
                 log::info!("Completed trade: {result:?}");
 
                 if let TradeMode::Take = self.trade_mode {
                     self.trade_mode = TradeMode::Trade
+                }
+
+                if let TradeResult::Completed = result {
+                    self.client.send_command(
+                        "say".to_string(),
+                        vec!["Thank you for trading with me!".to_string()],
+                    );
                 }
             }
             _ => (),

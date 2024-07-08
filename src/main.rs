@@ -15,15 +15,6 @@ pub struct Secrets {
     pub password: String,
 }
 
-impl Secrets {
-    fn read() -> Result<Self, String> {
-        let config_path = var("SECRETS").map_err(|error| error.to_string())?;
-        let config_file_content = read_to_string(config_path).map_err(|error| error.to_string())?;
-
-        toml::from_str::<Secrets>(&config_file_content).map_err(|error| error.to_string())
-    }
-}
-
 #[derive(Serialize, Deserialize)]
 struct Config {
     pub buy_prices: HashMap<String, u32>,
@@ -32,22 +23,26 @@ struct Config {
     pub orientation: String,
 }
 
-impl Config {
-    fn read() -> Result<Self, String> {
-        let config_path = args()
-            .nth(1)
-            .expect("Pass an argument specifying the config file");
-        let config_file_content = read_to_string(config_path).map_err(|error| error.to_string())?;
-
-        toml::from_str::<Config>(&config_file_content).map_err(|error| error.to_string())
-    }
-}
-
 fn main() {
     env_logger::init();
 
-    let secrets = Secrets::read().unwrap();
-    let config = Config::read().unwrap();
+    let secrets = {
+        let config_path =
+            var("SECRETS").expect("Provide a SECRETS variable specifying the secrets file");
+        let file_content = read_to_string(config_path).expect("Failed to read secrets");
+
+        toml::from_str::<Secrets>(&file_content).expect("Failed to parse secrets")
+    };
+
+    let config = {
+        let config_path = args()
+            .nth(1)
+            .expect("Pass an argument specifying the config file");
+        let file_content = read_to_string(config_path).expect("Failed to read config");
+
+        toml::from_str::<Config>(&file_content).expect("Failed to parse secrets")
+    };
+
     let mut bot = Bot::new(
         &secrets.username,
         &secrets.password,

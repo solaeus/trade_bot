@@ -16,6 +16,7 @@ struct Config {
     pub buy_prices: HashMap<String, u32>,
     pub sell_prices: HashMap<String, u32>,
     pub position: [f32; 3],
+    pub orientation: String,
 }
 
 impl Config {
@@ -44,6 +45,7 @@ fn main() {
         config.buy_prices,
         config.sell_prices,
         config.position,
+        config.orientation,
     )
     .expect("Failed to create bot");
 

@@ -5,10 +5,11 @@ use std::{
 };
 
 use tokio::runtime::Runtime;
+use vek::{num_traits::Float, Quaternion};
 use veloren_client::{addr::ConnectionArgs, Client, Event as VelorenEvent, WorldExt};
 use veloren_common::{
     clock::Clock,
-    comp::{invite::InviteKind, item::ItemDefinitionIdOwned, ChatType, ControllerInputs, Pos},
+    comp::{invite::InviteKind, item::ItemDefinitionIdOwned, ChatType, ControllerInputs, Ori, Pos},
     outcome::Outcome,
     trade::{PendingTrade, TradeAction},
     uid::Uid,
@@ -25,6 +26,7 @@ enum TradeMode {
 
 pub struct Bot {
     position: [f32; 3],
+    orientation: String,
     client: Client,
     clock: Clock,
     buy_prices: HashMap<String, u32>,
@@ -42,6 +44,7 @@ impl Bot {
         buy_prices: HashMap<String, u32>,
         sell_prices: HashMap<String, u32>,
         position: [f32; 3],
+        orientation: String,
     ) -> Result<Self, String> {
         log::info!("Connecting to veloren");
 
@@ -50,6 +53,7 @@ impl Bot {
 
         Ok(Bot {
             position,
+            orientation,
             client,
             clock,
             buy_prices,
@@ -90,7 +94,6 @@ impl Bot {
                 entity: 4,
             },
         );
-        self.client.sort_inventory();
 
         Ok(())
     }
@@ -114,26 +117,14 @@ impl Bot {
                 self.client.enable_lantern();
             }
 
-            if let Some(position) = self.client.position() {
-                if position != self.position.into() {
-                    let entity = self.client.entity().clone();
-                    let mut position_state = self.client.state_mut().ecs().write_storage::<Pos>();
-
-                    position_state
-                        .insert(entity, Pos(self.position.into()))
-                        .map_err(|error| error.to_string())?;
-                }
-            }
+            self.handle_position_and_orientation()?;
 
             if let Some((_, trade, _)) = self.client.pending_trade() {
                 match self.trade_mode {
                     TradeMode::Trade => self.handle_trade(trade.clone())?,
-                    TradeMode::Take => self.handle_take(trade.clone()),
+                    TradeMode::Take => self.handle_take(trade.clone())?,
                 }
-            }
-
-            if !self.client.is_trading() {
-                self.trade_mode = TradeMode::Trade;
+            } else if self.client.pending_invites().is_empty() {
                 self.is_player_notified = false;
 
                 self.client.accept_invite();
@@ -187,6 +178,13 @@ impl Bot {
                         self.client
                             .send_command("say".to_string(), vec!["Ouch!".to_string()])
                     }
+                }
+            }
+            VelorenEvent::TradeComplete { result, .. } => {
+                log::info!("Completed trade: {result:?}");
+
+                if let TradeMode::Take = self.trade_mode {
+                    self.trade_mode = TradeMode::Trade
                 }
             }
             _ => (),
@@ -419,11 +417,24 @@ impl Bot {
         Ok(())
     }
 
-    fn handle_take(&mut self, trade: PendingTrade) {
-        if trade.offers[0].is_empty() && !trade.offers[1].is_empty() {
+    fn handle_take(&mut self, trade: PendingTrade) -> Result<(), String> {
+        let my_offer_index = trade
+            .which_party(self.client.uid().ok_or("Failed to get uid")?)
+            .ok_or("Failed to get offer index")?;
+        let their_offer_index = if my_offer_index == 0 { 1 } else { 0 };
+        let (my_offer, their_offer) = {
+            (
+                &trade.offers[my_offer_index],
+                &trade.offers[their_offer_index],
+            )
+        };
+
+        if my_offer.is_empty() && !their_offer.is_empty() {
             self.client
                 .perform_trade_action(TradeAction::Accept(trade.phase));
         }
+
+        Ok(())
     }
 
     fn send_price_info(&mut self, target: &Uid) -> Result<(), String> {
@@ -476,6 +487,44 @@ impl Bot {
                 None
             }
         })
+    }
+
+    fn handle_position_and_orientation(&mut self) -> Result<(), String> {
+        let current_position = self.client.position();
+
+        if current_position == Some(self.position.into()) {
+            return Ok(());
+        }
+
+        let entity = self.client.entity().clone();
+        let ecs = self.client.state_mut().ecs();
+        let mut position_state = ecs.write_storage::<Pos>();
+        let mut orientation_state = ecs.write_storage::<Ori>();
+
+        let orientation = match self.orientation.to_lowercase().as_str() {
+            "west" => Ori::default()
+                .uprighted()
+                .rotated(Quaternion::rotation_z(90.0.to_radians())),
+            "south" => Ori::default()
+                .uprighted()
+                .rotated(Quaternion::rotation_z(180.0.to_radians())),
+            "east" => Ori::default()
+                .uprighted()
+                .rotated(Quaternion::rotation_z(270.0.to_radians())),
+            "north" => Ori::default(),
+            _ => {
+                return Err("Orientation must north, east, south or west".to_string());
+            }
+        };
+
+        orientation_state
+            .insert(entity, orientation)
+            .map_err(|error| error.to_string())?;
+        position_state
+            .insert(entity, Pos(self.position.into()))
+            .map_err(|error| error.to_string())?;
+
+        Ok(())
     }
 }
 

@@ -2795,6 +2795,7 @@ dependencies = [
  "serde",
  "tokio",
  "toml",
+ "vek",
  "veloren-client",
  "veloren-common",
  "veloren-common-net",

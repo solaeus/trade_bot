@@ -175,7 +175,7 @@ impl Bot {
                 ..
             }) => {
                 if let Some(uid) = self.client.uid() {
-                    if uid == target && self.last_ouch.elapsed() > Duration::from_secs(2) {
+                    if uid == target && self.last_ouch.elapsed() > Duration::from_secs(1) {
                         self.client
                             .send_command("say".to_string(), vec!["Ouch!".to_string()]);
 
@@ -186,8 +186,8 @@ impl Bot {
             VelorenEvent::Outcome(Outcome::HealthChange { info, .. }) => {
                 if let Some(uid) = self.client.uid() {
                     if uid == info.target
-                        && info.amount.is_sign_positive()
-                        && self.last_ouch.elapsed() > Duration::from_secs(2)
+                        && info.amount.is_sign_negative()
+                        && self.last_ouch.elapsed() > Duration::from_secs(1)
                     {
                         self.client
                             .send_command("say".to_string(), vec!["That hurt!".to_string()]);
@@ -195,12 +195,6 @@ impl Bot {
                         self.last_ouch = Instant::now();
                     }
                 }
-            }
-            VelorenEvent::Outcome(Outcome::Death { .. }) => {
-                self.client
-                    .send_command("say".to_string(), vec!["Really?".to_string()]);
-
-                self.last_ouch = Instant::now();
             }
             VelorenEvent::TradeComplete { result, .. } => {
                 log::info!("Completed trade: {result:?}");
@@ -240,6 +234,10 @@ impl Bot {
     }
 
     fn handle_trade(&mut self, trade: PendingTrade) -> Result<(), String> {
+        if trade.is_empty_trade() {
+            return Ok(());
+        }
+
         let my_offer_index = trade
             .which_party(self.client.uid().ok_or("Failed to get uid")?)
             .ok_or("Failed to get offer index")?;
@@ -266,10 +264,6 @@ impl Bot {
         let their_coins = their_inventory
             .get_slot_of_item_by_def_id(&ItemDefinitionIdOwned::Simple(COINS.to_string()))
             .ok_or("Failed to find coins")?;
-        let their_total_coin_amount = their_inventory
-            .get(their_coins)
-            .map(|item| item.amount() as i32)
-            .unwrap_or(0);
         let (mut their_offered_coin_amount, mut my_offered_coin_amount) = (0, 0);
         let their_offered_items_value =
             their_offer
@@ -347,7 +341,6 @@ impl Bot {
 
         for (slot_id, amount) in their_offer {
             let item = their_inventory.get(*slot_id).ok_or("Failed to get item")?;
-
             let item_id = item.persistence_item_id();
 
             if item_id == COINS {
@@ -395,20 +388,6 @@ impl Bot {
             return Ok(());
         }
 
-        if my_offered_items_value > their_total_coin_amount {
-            self.client.send_command(
-                "tell".to_string(),
-                vec![
-                    self.find_name(&trade.parties[their_offer_index])
-                        .ok_or("Failed to get uid")?
-                        .to_string(),
-                    format!("I need {my_offered_items_value} coins or trade value from you."),
-                ],
-            );
-
-            return Ok(());
-        }
-
         let difference = their_offered_items_value - my_offered_items_value;
 
         // If the trade is balanced
@@ -416,6 +395,8 @@ impl Bot {
             // Accept
             self.client
                 .perform_trade_action(TradeAction::Accept(trade.phase));
+
+            return Ok(());
         // If they are offering more
         } else if difference.is_positive() {
             // If they are offering coins
@@ -532,13 +513,12 @@ impl Bot {
     }
 
     fn handle_position_and_orientation(&mut self) -> Result<(), String> {
-        match self.client.position() {
-            Some(current_position) => {
-                if current_position == self.position.into() {
-                    return Ok(());
-                }
+        let current_position = self.client.current::<Pos>();
+
+        if let Some(current_position) = current_position {
+            if current_position.0 == self.position.into() {
+                return Ok(());
             }
-            None => return Ok(()),
         }
 
         let entity = self.client.entity();

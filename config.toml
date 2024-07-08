@@ -19,7 +19,7 @@ orientation = "East"
 "common.items.armor.misc.head.hare_hat" = 100_000
 "common.items.armor.misc.head.winged_coronet" = 20_000
 
-"common.items.consumable.potion_minor" = 150
+"common.items.consumable.potion_minor" = 150_000_000
 
 "common.items.glider.skullgrin" = 20_000
 

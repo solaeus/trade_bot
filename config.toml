@@ -1,6 +1,6 @@
 character = "crabobot_test"
-position = [17689.0, 14964.0, 238.0]
-orientation = "East"
+position = [17722.0, 14963.0, 237.0]
+orientation = "West"
 
 [buy_prices]
 "common.items.food.cheese" = 50
@@ -17,18 +17,27 @@ orientation = "East"
 "common.items.armor.misc.head.boreal_warhelm" = 450_000
 "common.items.armor.misc.head.cat_capuche" = 600_000
 "common.items.armor.misc.head.hare_hat" = 100_000
-"common.items.armor.misc.head.winged_coronet" = 20_000
+"common.items.armor.misc.head.winged_coronet" = 40_000
 
-"common.items.consumable.potion_minor" = 150_000_000
+"common.items.crafting_ing.brinestone" = 2000
+"common.items.crafting_ing.coral_brach" = 1000
+"common.items.crafting_ing.dwarven_battery" = 40000
+
+"common.items.consumable.potion_minor" = 150
 
 "common.items.glider.skullgrin" = 20_000
 
+"common.items.log.eldwood" = 3000
+
+"common.items.mineral.ingot.orichalcum" = 8000
+
+"common.items.tool.instruments.icy_talharpa" = 500_000
 "common.items.tool.instruments.steeltonguedrum" = 300_000
 
 "common.items.weapons.axe.parashu" = 100_000
 "common.items.weapons.sword.caladbolg" = 100_000
-"common.items.weapons.staff.laevateinn" = 50_000
+"common.items.weapons.staff.laevateinn" = 60_000
 "common.items.weapons.hammer.mjolnir" = 100_000
-"common.items.weapons.sceptre.caduceus" = 100_000
+"common.items.weapons.sceptre.caduceus" = 150_000
 
 "common.items.lantern.geode_purple" = 20_000

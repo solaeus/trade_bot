@@ -102,6 +102,7 @@ impl Bot {
         })
     }
 
+    // Run the bot for a single tick. This should be called in a loop.
     pub fn tick(&mut self) -> Result<(), String> {
         let veloren_events = self
             .client
@@ -148,6 +149,7 @@ impl Bot {
         Ok(())
     }
 
+    // Consume and manage a client-side Veloren event.
     fn handle_veloren_event(&mut self, event: VelorenEvent) -> Result<(), String> {
         match event {
             VelorenEvent::Chat(message) => {

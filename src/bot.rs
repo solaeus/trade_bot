@@ -20,22 +20,21 @@ use veloren_common_net::sync::WorldSyncExt;
 
 const COINS: &str = "common.items.utility.coins";
 
-enum TradeMode {
-    Take,
-    Trade,
-}
-
 pub struct Bot {
     position: [f32; 3],
     orientation: String,
+
     client: Client,
     clock: Clock,
+
     buy_prices: HashMap<String, u32>,
     sell_prices: HashMap<String, u32>,
+    trade_mode: TradeMode,
+
+    is_player_notified: bool,
     last_action: Instant,
     last_announcement: Instant,
-    is_player_notified: bool,
-    trade_mode: TradeMode,
+    last_ouch: Instant,
 }
 
 impl Bot {
@@ -50,7 +49,8 @@ impl Bot {
         log::info!("Connecting to veloren");
 
         let client = connect_to_veloren(username, password)?;
-        let clock = Clock::new(Duration::from_secs_f64(1.0 / 60.0));
+        let clock = Clock::new(Duration::from_secs_f64(1.0 / 30.0));
+        let now = Instant::now();
 
         Ok(Bot {
             position,
@@ -59,10 +59,11 @@ impl Bot {
             clock,
             buy_prices,
             sell_prices,
-            last_action: Instant::now(),
-            last_announcement: Instant::now(),
-            is_player_notified: false,
             trade_mode: TradeMode::Trade,
+            is_player_notified: false,
+            last_action: now,
+            last_announcement: now,
+            last_ouch: now,
         })
     }
 
@@ -129,15 +130,15 @@ impl Bot {
             }
 
             self.last_action = Instant::now();
-        }
 
-        if self.last_announcement.elapsed() > Duration::from_secs(600) {
-            self.client.send_command(
-                "region".to_string(),
-                vec!["I'm a bot. Trade with me or say 'prices' to see my offers.".to_string()],
-            );
+            if self.last_announcement.elapsed() > Duration::from_secs(1200) {
+                self.client.send_command(
+                    "region".to_string(),
+                    vec!["I'm a bot. Trade with me or say 'prices' to see my offers.".to_string()],
+                );
 
-            self.last_announcement = Instant::now();
+                self.last_announcement = Instant::now();
+            }
         }
 
         self.clock.tick();
@@ -172,9 +173,11 @@ impl Bot {
                 ..
             }) => {
                 if let Some(uid) = self.client.uid() {
-                    if uid == target {
+                    if uid == target && self.last_ouch.elapsed() > Duration::from_secs(1) {
                         self.client
-                            .send_command("say".to_string(), vec!["Ouch!".to_string()])
+                            .send_command("say".to_string(), vec!["Ouch!".to_string()]);
+
+                        self.last_ouch = Instant::now();
                     }
                 }
             }
@@ -539,6 +542,11 @@ impl Bot {
 
         Ok(())
     }
+}
+
+enum TradeMode {
+    Take,
+    Trade,
 }
 
 fn connect_to_veloren(username: &str, password: &str) -> Result<Client, String> {

@@ -287,7 +287,7 @@ impl Bot {
                                     self.buy_prices
                                         .get(&item_id)
                                         .map(|int| 0 - *int as i32)
-                                        .unwrap_or(i32::MAX)
+                                        .unwrap_or(i32::MIN)
                                 })
                         };
 

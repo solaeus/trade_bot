@@ -114,8 +114,8 @@ impl Bot {
                 self.client.respawn();
             }
 
-            self.handle_lantern();
             self.handle_position_and_orientation()?;
+            self.handle_lantern();
 
             if let Some((_, trade, _)) = self.client.pending_trade() {
                 match self.trade_mode {

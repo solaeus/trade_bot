@@ -40,7 +40,7 @@ pub struct Bot {
 
 impl Bot {
     pub fn new(
-        username: String,
+        username: &str,
         password: &str,
         buy_prices: HashMap<String, u32>,
         sell_prices: HashMap<String, u32>,
@@ -49,7 +49,7 @@ impl Bot {
     ) -> Result<Self, String> {
         log::info!("Connecting to veloren");
 
-        let client = connect_to_veloren(&username, password)?;
+        let client = connect_to_veloren(username, password)?;
         let clock = Clock::new(Duration::from_secs_f64(1.0 / 60.0));
 
         Ok(Bot {
@@ -244,7 +244,7 @@ impl Bot {
             their_offer
                 .into_iter()
                 .fold(0, |acc: i32, (slot_id, quantity)| {
-                    if let Some(item) = their_inventory.get(slot_id.clone()) {
+                    if let Some(item) = their_inventory.get(*slot_id) {
                         let item_id = item.persistence_item_id();
 
                         let item_value = if item_id == COINS {
@@ -272,7 +272,7 @@ impl Bot {
             my_offer
                 .into_iter()
                 .fold(0, |acc: i32, (slot_id, quantity)| {
-                    if let Some(item) = my_inventory.get(slot_id.clone()) {
+                    if let Some(item) = my_inventory.get(*slot_id) {
                         let item_id = item.persistence_item_id();
 
                         let item_value = if item_id == COINS {
@@ -300,9 +300,7 @@ impl Bot {
         let mut my_items_to_remove = Vec::new();
 
         for (slot_id, amount) in my_offer {
-            let item = my_inventory
-                .get(slot_id.clone())
-                .ok_or("Failed to get item")?;
+            let item = my_inventory.get(*slot_id).ok_or("Failed to get item")?;
             let item_id = item.persistence_item_id();
 
             if item_id == COINS {
@@ -310,16 +308,14 @@ impl Bot {
             }
 
             if !self.sell_prices.contains_key(&item_id) {
-                my_items_to_remove.push((slot_id.clone(), *amount));
+                my_items_to_remove.push((*slot_id, *amount));
             }
         }
 
         let mut their_items_to_remove = Vec::new();
 
         for (slot_id, amount) in their_offer {
-            let item = their_inventory
-                .get(slot_id.clone())
-                .ok_or("Failed to get item")?;
+            let item = their_inventory.get(*slot_id).ok_or("Failed to get item")?;
 
             let item_id = item.persistence_item_id();
 
@@ -328,7 +324,7 @@ impl Bot {
             }
 
             if !self.buy_prices.contains_key(&item_id) {
-                their_items_to_remove.push((slot_id.clone(), *amount));
+                their_items_to_remove.push((*slot_id, *amount));
             }
         }
 
@@ -382,7 +378,7 @@ impl Bot {
             return Ok(());
         }
 
-        let difference: i32 = their_offered_items_value as i32 - my_offered_items_value as i32;
+        let difference = their_offered_items_value - my_offered_items_value;
 
         // If the trade is balanced
         if difference == 0 {
@@ -415,7 +411,7 @@ impl Bot {
                 // Remove my coins to balance
                 self.client.perform_trade_action(TradeAction::RemoveItem {
                     item: my_coins,
-                    quantity: difference.abs() as u32,
+                    quantity: difference.unsigned_abs(),
                     ours: true,
                 });
             // If I am not offering coins
@@ -423,7 +419,7 @@ impl Bot {
                 // Add their coins to balance
                 self.client.perform_trade_action(TradeAction::AddItem {
                     item: their_coins,
-                    quantity: difference.abs() as u32,
+                    quantity: difference.unsigned_abs(),
                     ours: false,
                 });
             }
@@ -514,11 +510,10 @@ impl Bot {
             None => return Ok(()),
         }
 
-        let entity = self.client.entity().clone();
+        let entity = self.client.entity();
         let ecs = self.client.state_mut().ecs();
         let mut position_state = ecs.write_storage::<Pos>();
         let mut orientation_state = ecs.write_storage::<Ori>();
-
         let orientation = match self.orientation.to_lowercase().as_str() {
             "west" => Ori::default()
                 .uprighted()

@@ -17,6 +17,7 @@ pub struct Secrets {
 
 #[derive(Serialize, Deserialize)]
 struct Config {
+    pub character: String,
     pub buy_prices: HashMap<String, u32>,
     pub sell_prices: HashMap<String, u32>,
     pub position: [f32; 3],
@@ -46,14 +47,13 @@ fn main() {
     let mut bot = Bot::new(
         &secrets.username,
         &secrets.password,
+        &config.character,
         config.buy_prices,
         config.sell_prices,
         config.position,
         config.orientation,
     )
     .expect("Failed to create bot");
-
-    bot.select_character().expect("Failed to select character");
 
     loop {
         let _ = bot.tick().inspect_err(|error| eprintln!("{error}"));

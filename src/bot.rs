@@ -20,6 +20,8 @@ use veloren_common_net::sync::WorldSyncExt;
 
 const COINS: &str = "common.items.utility.coins";
 
+/// A Bot instance represents an active connection to the server and it will
+/// attempt to run every time the `tick` function is called.
 pub struct Bot {
     position: [f32; 3],
     orientation: String,
@@ -38,9 +40,12 @@ pub struct Bot {
 }
 
 impl Bot {
+    /// Connect to the official veloren server, select the specified character
+    /// return a Bot instance ready to run.
     pub fn new(
         username: &str,
         password: &str,
+        character: &str,
         buy_prices: HashMap<String, u32>,
         sell_prices: HashMap<String, u32>,
         position: [f32; 3],
@@ -48,8 +53,38 @@ impl Bot {
     ) -> Result<Self, String> {
         log::info!("Connecting to veloren");
 
-        let client = connect_to_veloren(username, password)?;
-        let clock = Clock::new(Duration::from_secs_f64(1.0 / 30.0));
+        let mut client = connect_to_veloren(username, password)?;
+        let mut clock = Clock::new(Duration::from_secs_f64(1.0 / 30.0));
+
+        log::info!("Selecting a character");
+
+        client.load_character_list();
+
+        while client.character_list().loading {
+            client
+                .tick(ControllerInputs::default(), clock.dt())
+                .map_err(|error| format!("{error:?}"))?;
+            clock.tick();
+        }
+
+        let character_id = client
+            .character_list()
+            .characters
+            .iter()
+            .find(|character_item| character_item.character.alias == character)
+            .expect("No characters to select")
+            .character
+            .id
+            .expect("Failed to get character ID");
+
+        client.request_character(
+            character_id,
+            ViewDistances {
+                terrain: 4,
+                entity: 4,
+            },
+        );
+
         let now = Instant::now();
 
         Ok(Bot {
@@ -65,39 +100,6 @@ impl Bot {
             last_announcement: now,
             last_ouch: now,
         })
-    }
-
-    pub fn select_character(&mut self) -> Result<(), String> {
-        log::info!("Selecting a character");
-
-        self.client.load_character_list();
-
-        while self.client.character_list().loading {
-            self.client
-                .tick(ControllerInputs::default(), self.clock.dt())
-                .map_err(|error| format!("{error:?}"))?;
-            self.clock.tick();
-        }
-
-        let character_id = self
-            .client
-            .character_list()
-            .characters
-            .first()
-            .expect("No characters to select")
-            .character
-            .id
-            .expect("Failed to get character ID");
-
-        self.client.request_character(
-            character_id,
-            ViewDistances {
-                terrain: 4,
-                entity: 4,
-            },
-        );
-
-        Ok(())
     }
 
     pub fn tick(&mut self) -> Result<(), String> {

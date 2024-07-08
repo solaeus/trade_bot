@@ -11,6 +11,7 @@ use veloren_common::{
     clock::Clock,
     comp::{invite::InviteKind, item::ItemDefinitionIdOwned, ChatType, ControllerInputs, Ori, Pos},
     outcome::Outcome,
+    time::DayPeriod,
     trade::{PendingTrade, TradeAction},
     uid::Uid,
     ViewDistances,
@@ -113,10 +114,7 @@ impl Bot {
                 self.client.respawn();
             }
 
-            if !self.client.is_lantern_enabled() {
-                self.client.enable_lantern();
-            }
-
+            self.handle_lantern();
             self.handle_position_and_orientation()?;
 
             if let Some((_, trade, _)) = self.client.pending_trade() {
@@ -191,6 +189,23 @@ impl Bot {
         }
 
         Ok(())
+    }
+
+    fn handle_lantern(&mut self) {
+        let day_period = self.client.state().get_day_period();
+
+        match day_period {
+            DayPeriod::Night => {
+                if !self.client.is_lantern_enabled() {
+                    self.client.enable_lantern();
+                }
+            }
+            DayPeriod::Morning | DayPeriod::Noon | DayPeriod::Evening => {
+                if self.client.is_lantern_enabled() {
+                    self.client.disable_lantern();
+                }
+            }
+        }
     }
 
     fn handle_trade(&mut self, trade: PendingTrade) -> Result<(), String> {
@@ -490,10 +505,13 @@ impl Bot {
     }
 
     fn handle_position_and_orientation(&mut self) -> Result<(), String> {
-        let current_position = self.client.position();
-
-        if current_position == Some(self.position.into()) {
-            return Ok(());
+        match self.client.position() {
+            Some(current_position) => {
+                if current_position == self.position.into() {
+                    return Ok(());
+                }
+            }
+            None => return Ok(()),
         }
 
         let entity = self.client.entity().clone();

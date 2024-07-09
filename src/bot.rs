@@ -127,8 +127,6 @@ impl Bot {
                     TradeMode::Take => self.handle_take(trade.clone())?,
                 }
             } else if self.client.pending_invites().is_empty() {
-                self.is_player_notified = false;
-
                 self.client.accept_invite();
             }
 
@@ -153,22 +151,40 @@ impl Bot {
     fn handle_veloren_event(&mut self, event: VelorenEvent) -> Result<(), String> {
         match event {
             VelorenEvent::Chat(message) => {
+                let sender = match message.chat_type {
+                    ChatType::Tell(uid, _) => uid,
+                    ChatType::Say(uid) => uid,
+                    _ => return Ok(()),
+                };
                 let content = message.content().as_plain().unwrap_or_default();
+                let (command, item_name) = content.split_once(' ').unwrap_or((content, ""));
 
-                match message.chat_type {
-                    ChatType::Tell(sender_uid, _) | ChatType::Say(sender_uid) => {
-                        match content.trim() {
-                            "prices" => self.send_price_info(&sender_uid)?,
-                            "take" => {
-                                if !self.client.is_trading() {
-                                    self.trade_mode = TradeMode::Take;
-                                    self.client.send_invite(sender_uid, InviteKind::Trade);
-                                }
+                match command {
+                    "price" => {
+                        for (item_id, price) in &self.buy_prices {
+                            if item_id.contains(item_name) {
+                                let player_name = self
+                                    .find_name(&sender)
+                                    .ok_or("Failed to find player name")?
+                                    .to_string();
+
+                                self.client.send_command(
+                                    "tell".to_string(),
+                                    vec![
+                                        player_name.clone(),
+                                        format!("{item_id} costs {price} coins"),
+                                    ],
+                                );
                             }
-                            _ => {}
                         }
                     }
-
+                    "prices" => self.send_all_price_info(&sender)?,
+                    "take" => {
+                        if !self.client.is_trading() {
+                            self.trade_mode = TradeMode::Take;
+                            self.client.send_invite(sender, InviteKind::Trade);
+                        }
+                    }
                     _ => {}
                 }
             }
@@ -202,7 +218,8 @@ impl Bot {
                 log::info!("Completed trade: {result:?}");
 
                 if let TradeMode::Take = self.trade_mode {
-                    self.trade_mode = TradeMode::Trade
+                    self.is_player_notified = false;
+                    self.trade_mode = TradeMode::Trade;
                 }
 
                 if let TradeResult::Completed = result {
@@ -236,14 +253,21 @@ impl Bot {
     }
 
     fn handle_trade(&mut self, trade: PendingTrade) -> Result<(), String> {
-        if trade.is_empty_trade() {
-            return Ok(());
-        }
-
         let my_offer_index = trade
             .which_party(self.client.uid().ok_or("Failed to get uid")?)
             .ok_or("Failed to get offer index")?;
         let their_offer_index = if my_offer_index == 0 { 1 } else { 0 };
+
+        if !self.is_player_notified {
+            self.send_all_price_info(&trade.parties[their_offer_index])?;
+
+            self.is_player_notified = true;
+        }
+
+        if trade.is_empty_trade() {
+            return Ok(());
+        }
+
         let (my_offer, their_offer, them) = {
             (
                 &trade.offers[my_offer_index],
@@ -356,12 +380,6 @@ impl Bot {
 
         drop(inventories);
 
-        if !self.is_player_notified {
-            self.send_price_info(&trade.parties[their_offer_index])?;
-
-            self.is_player_notified = true;
-        }
-
         if their_offered_items_value == 0 && my_offered_items_value == 0 {
             return Ok(());
         }
@@ -462,7 +480,7 @@ impl Bot {
         Ok(())
     }
 
-    fn send_price_info(&mut self, target: &Uid) -> Result<(), String> {
+    fn send_all_price_info(&mut self, target: &Uid) -> Result<(), String> {
         let player_name = self
             .find_name(target)
             .ok_or("Failed to find player name")?

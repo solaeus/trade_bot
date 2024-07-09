@@ -135,7 +135,7 @@ impl Bot {
             if self.last_announcement.elapsed() > Duration::from_secs(1200) {
                 self.client.send_command(
                     "region".to_string(),
-                    vec!["I'm a bot. Trade with me or say 'prices' to see my offers.".to_string()],
+                    vec!["I'm a bot. You can trade with me or use /say or /tell to check prices: 'price [item_name]'.".to_string()],
                 );
 
                 self.last_announcement = Instant::now();
@@ -161,21 +161,31 @@ impl Bot {
 
                 match command {
                     "price" => {
+                        let player_name = self
+                            .find_name(&sender)
+                            .ok_or("Failed to find player name")?
+                            .to_string();
+                        let mut found = false;
+
                         for (item_id, price) in &self.buy_prices {
                             if item_id.contains(item_name) {
-                                let player_name = self
-                                    .find_name(&sender)
-                                    .ok_or("Failed to find player name")?
-                                    .to_string();
-
                                 self.client.send_command(
                                     "tell".to_string(),
                                     vec![
                                         player_name.clone(),
-                                        format!("{item_id} costs {price} coins"),
+                                        format!("{item_id} costs {price} coins."),
                                     ],
                                 );
+
+                                found = true;
                             }
+                        }
+
+                        if !found {
+                            self.client.send_command(
+                                "tell".to_string(),
+                                vec![player_name.clone(), format!("I don't have that item.")],
+                            );
                         }
                     }
                     "prices" => self.send_all_price_info(&sender)?,

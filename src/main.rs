@@ -1,10 +1,6 @@
 mod bot;
 
-use std::{
-    collections::HashMap,
-    env::{args, var},
-    fs::read_to_string,
-};
+use std::{collections::HashMap, env::var, fs::read_to_string};
 
 use bot::Bot;
 use serde::{Deserialize, Serialize};
@@ -28,21 +24,19 @@ fn main() {
     env_logger::init();
 
     let secrets = {
-        let config_path =
+        let secrets_path =
             var("SECRETS").expect("Provide a SECRETS variable specifying the secrets file");
-        let file_content = read_to_string(config_path).expect("Failed to read secrets");
+        let file_content = read_to_string(secrets_path).expect("Failed to read secrets");
 
         toml::from_str::<Secrets>(&file_content).expect("Failed to parse secrets")
     };
 
     let config = {
-        let config_path = args()
-            .nth(1)
-            .expect("Pass an argument specifying the config file");
-        let file_content =
-            read_to_string(&config_path).expect(&format!("Failed to read config at {config_path}"));
+        let config_path =
+            var("CONFIG").expect("Provide a CONFIG variable specifying the config file");
+        let file_content = read_to_string(config_path).expect("Failed to read config");
 
-        toml::from_str::<Config>(&file_content).expect("Failed to parse secrets")
+        toml::from_str::<Config>(&file_content).expect("Failed to parse config")
     };
 
     let mut bot = Bot::new(

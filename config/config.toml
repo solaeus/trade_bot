@@ -1,5 +1,5 @@
-character = "crabobot_test"
-position = [17722.0, 14963.0, 237.0]
+character = "Obarc (Merchant)"
+position = [17726.0, 14960.0, 237.0]
 orientation = "West"
 
 [buy_prices]

@@ -72,7 +72,7 @@ impl Bot {
             .characters
             .iter()
             .find(|character_item| character_item.character.alias == character)
-            .expect("No characters to select")
+            .expect(&format!("No character named {character}"))
             .character
             .id
             .expect("Failed to get character ID");

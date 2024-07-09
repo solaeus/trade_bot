@@ -173,7 +173,21 @@ impl Bot {
                                     "tell".to_string(),
                                     vec![
                                         player_name.clone(),
-                                        format!("{item_id} costs {price} coins."),
+                                        format!("I buy {item_id} for {price} coins."),
+                                    ],
+                                );
+
+                                found = true;
+                            }
+                        }
+
+                        for (item_id, price) in &self.sell_prices {
+                            if item_id.contains(item_name) {
+                                self.client.send_command(
+                                    "tell".to_string(),
+                                    vec![
+                                        player_name.clone(),
+                                        format!("I sell {item_id} for {price} coins."),
                                     ],
                                 );
 
@@ -184,7 +198,10 @@ impl Bot {
                         if !found {
                             self.client.send_command(
                                 "tell".to_string(),
-                                vec![player_name.clone(), format!("I don't have that item.")],
+                                vec![
+                                    player_name.clone(),
+                                    format!("I don't have a price for that item."),
+                                ],
                             );
                         }
                     }

@@ -135,7 +135,7 @@ impl Bot {
             if self.last_announcement.elapsed() > Duration::from_secs(1200) {
                 self.client.send_command(
                     "region".to_string(),
-                    vec!["I'm a bot. You can trade with me or use /say or /tell to check prices: 'price [item_name]'.".to_string()],
+                    vec!["I'm a bot. You can trade with me or use /say or /tell to check prices: 'price [item_name]' or 'prices'.".to_string()],
                 );
 
                 self.last_announcement = Instant::now();

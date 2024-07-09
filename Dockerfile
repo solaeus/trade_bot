@@ -20,4 +20,4 @@ COPY assets/ assets/
 
 RUN chmod +x trade-bot
 
-CMD ["./trade-bot"]
+ENTRYPOINT ["./trade-bot"]

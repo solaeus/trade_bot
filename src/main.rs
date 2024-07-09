@@ -39,7 +39,8 @@ fn main() {
         let config_path = args()
             .nth(1)
             .expect("Pass an argument specifying the config file");
-        let file_content = read_to_string(config_path).expect("Failed to read config");
+        let file_content =
+            read_to_string(&config_path).expect(&format!("Failed to read config at {config_path}"));
 
         toml::from_str::<Config>(&file_content).expect("Failed to parse secrets")
     };

@@ -169,6 +169,8 @@ impl Bot {
 
                         for (item_id, price) in &self.buy_prices {
                             if item_id.contains(item_name) {
+                                log::debug!("Sending price info on {item_id} to {player_name}");
+
                                 self.client.send_command(
                                     "tell".to_string(),
                                     vec![
@@ -183,6 +185,8 @@ impl Bot {
 
                         for (item_id, price) in &self.sell_prices {
                             if item_id.contains(item_name) {
+                                log::debug!("Sending price info on {item_id} to {player_name}");
+
                                 self.client.send_command(
                                     "tell".to_string(),
                                     vec![

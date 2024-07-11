@@ -127,8 +127,13 @@ impl Bot {
 
             if let Some((_, trade, _)) = self.client.pending_trade() {
                 match self.trade_mode {
+                    TradeMode::AdminAccess => {
+                        if !trade.is_empty_trade() {
+                            self.client
+                                .perform_trade_action(TradeAction::Accept(trade.phase));
+                        }
+                    }
                     TradeMode::Trade => self.handle_trade(trade.clone())?,
-                    TradeMode::Take => self.handle_take(trade.clone())?,
                 }
             } else if self.client.pending_invites().is_empty() {
                 self.client.accept_invite();
@@ -171,26 +176,39 @@ impl Bot {
                 match command {
                     "price" => {
                         for item_name in split_content {
-                            self.send_price_info(&sender, &item_name.to_lowercase())?;
-
                             is_correct_format = true;
+
+                            self.send_price_info(&sender, &item_name.to_lowercase())?;
                         }
                     }
-                    "take" => {
-                        let sender_uuid = self
-                            .find_uuid(&sender)
-                            .ok_or("Failed to find uuid")?
-                            .to_string();
-                        let sender_name = self.find_name(&sender).ok_or("Failed to find name")?;
-                        let sender_is_admin =
-                            self.admins.contains(&sender_uuid) || self.admins.contains(sender_name);
+                    "sort" => {
+                        if self.is_user_admin(&sender)? {
+                            is_correct_format = true;
 
-                        if sender_is_admin && !self.client.is_trading() {
-                            self.trade_mode = TradeMode::Take;
+                            if let Some(sort_count) = split_content.next() {
+                                let sort_count = sort_count
+                                    .parse::<u8>()
+                                    .map_err(|error| error.to_string())?;
+
+                                log::debug!("Sorting inventory {sort_count} times");
+
+                                for _ in 0..sort_count {
+                                    self.client.sort_inventory();
+                                }
+                            } else {
+                                log::debug!("Sorting inventory");
+                                self.client.sort_inventory();
+                            }
+                        }
+                    }
+                    "admin_access" => {
+                        if self.is_user_admin(&sender)? && !self.client.is_trading() {
+                            log::debug!("Providing admin access");
+
+                            is_correct_format = true;
+                            self.trade_mode = TradeMode::AdminAccess;
                             self.client.send_invite(sender, InviteKind::Trade);
                         }
-
-                        is_correct_format = true;
                     }
                     _ => {}
                 }
@@ -250,7 +268,7 @@ impl Bot {
 
                 log::info!("End of trade with {their_name}: {result:?}");
 
-                if let TradeMode::Take = self.trade_mode {
+                if let TradeMode::AdminAccess = self.trade_mode {
                     self.trade_mode = TradeMode::Trade;
                 }
 
@@ -485,26 +503,6 @@ impl Bot {
         Ok(())
     }
 
-    fn handle_take(&mut self, trade: PendingTrade) -> Result<(), String> {
-        let my_offer_index = trade
-            .which_party(self.client.uid().ok_or("Failed to get uid")?)
-            .ok_or("Failed to get offer index")?;
-        let their_offer_index = if my_offer_index == 0 { 1 } else { 0 };
-        let (my_offer, their_offer) = {
-            (
-                &trade.offers[my_offer_index],
-                &trade.offers[their_offer_index],
-            )
-        };
-
-        if my_offer.is_empty() && !their_offer.is_empty() {
-            self.client
-                .perform_trade_action(TradeAction::Accept(trade.phase));
-        }
-
-        Ok(())
-    }
-
     fn send_price_info(&mut self, target: &Uid, item_name: &str) -> Result<(), String> {
         let player_name = self
             .find_name(target)
@@ -558,6 +556,16 @@ impl Bot {
         }
 
         Ok(())
+    }
+
+    fn is_user_admin(&self, uid: &Uid) -> Result<bool, String> {
+        let sender_uuid = self
+            .find_uuid(uid)
+            .ok_or("Failed to find uuid")?
+            .to_string();
+        let sender_name = self.find_name(uid).ok_or("Failed to find name")?;
+
+        Ok(self.admins.contains(sender_name) || self.admins.contains(&sender_uuid))
     }
 
     fn find_name<'a>(&'a self, uid: &Uid) -> Option<&'a String> {
@@ -618,7 +626,7 @@ impl Bot {
 }
 
 enum TradeMode {
-    Take,
+    AdminAccess,
     Trade,
 }
 

@@ -1,4 +1,4 @@
-position = [17726.0, 14957.0, 237.0]
+position = [17726.0, 14960.0, 237.0]
 orientation = "West"
 
 [buy_prices]
@@ -19,10 +19,10 @@ orientation = "West"
 "armor.misc.head.boreal_warhelm" = 450_000
 
 # Hats
-"armor.misc.head.cat_capuche" = 700_000
-"armor.misc.head.hare_hat" = 100_000
+"armor.misc.head.cat_capuche" = 750_000
+"armor.misc.head.hare_hat" = 150_000
 "armor.misc.head.winged_coronet" = 40_000
-"calendar.christmas.armor.misc.head.woolly_wintercap" = 800_000
+"calendar.christmas.armor.misc.head.woolly_wintercap" = 250_000
 
 # Crafting
 "crafting_ing.alkahest" = 6_000

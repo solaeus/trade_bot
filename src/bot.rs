@@ -133,7 +133,7 @@ impl Bot {
             if self.last_announcement.elapsed() > Duration::from_secs(1200) {
                 self.client.send_command(
                     "region".to_string(),
-                    vec!["I'm a bot. You can trade with me or use /say or /tell to check prices: 'price [item_name]'".to_string()],
+                    vec!["I'm a bot. You can trade with me or use /say or /tell to check prices: 'price [search_term]'".to_string()],
                 );
 
                 self.last_announcement = Instant::now();
@@ -155,20 +155,42 @@ impl Bot {
                     _ => return Ok(()),
                 };
                 let content = message.content().as_plain().unwrap_or_default();
-                let (command, item_name) = content.split_once(' ').unwrap_or((content, ""));
-                let item_name = item_name.to_lowercase();
+                let mut split_content = content.split(' ');
+                let command = split_content.next().unwrap_or_default();
+                let mut is_correct_format = false;
 
                 match command {
                     "price" => {
-                        self.send_price_info(&sender, &item_name)?;
+                        for item_name in split_content {
+                            self.send_price_info(&sender, &item_name.to_lowercase())?;
+
+                            is_correct_format = true;
+                        }
                     }
                     "take" => {
                         if !self.client.is_trading() {
                             self.trade_mode = TradeMode::Take;
                             self.client.send_invite(sender, InviteKind::Trade);
                         }
+
+                        is_correct_format = true;
                     }
                     _ => {}
+                }
+
+                if !is_correct_format {
+                    let player_name = self
+                        .find_name(&sender)
+                        .ok_or("Failed to find player name")?
+                        .to_string();
+
+                    self.client.send_command(
+                        "tell".to_string(),
+                        vec![
+                            player_name.clone(),
+                            format!("Use the format 'price [search_term]'."),
+                        ],
+                    );
                 }
             }
             VelorenEvent::Outcome(Outcome::ProjectileHit {

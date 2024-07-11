@@ -39,12 +39,31 @@ fn main() {
         toml::from_str::<Config>(&file_content).expect("Failed to parse config")
     };
 
+    let buy_prices_with_full_id = config
+        .buy_prices
+        .into_iter()
+        .map(|(mut item_id, price)| {
+            item_id.insert_str(0, "common.items.");
+
+            (item_id, price)
+        })
+        .collect();
+    let sell_prices_with_full_id = config
+        .sell_prices
+        .into_iter()
+        .map(|(mut item_id, price)| {
+            item_id.insert_str(0, "common.items.");
+
+            (item_id, price)
+        })
+        .collect();
+
     let mut bot = Bot::new(
         &secrets.username,
         &secrets.password,
         &secrets.character,
-        config.buy_prices,
-        config.sell_prices,
+        buy_prices_with_full_id,
+        sell_prices_with_full_id,
         config.position,
         config.orientation,
     )

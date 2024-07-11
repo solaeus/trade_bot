@@ -2,56 +2,63 @@ position = [17726.0, 14957.0, 237.0]
 orientation = "West"
 
 [buy_prices]
-"common.items.food.cheese" = 50
+"food.cheese" = 50
 
 [sell_prices]
 
-# Boreal Armor
-"common.items.armor.boreal.back" = 250_000
-"common.items.armor.boreal.belt" = 250_000
-"common.items.armor.boreal.chest" = 250_000
-"common.items.armor.boreal.foot" = 250_000
-"common.items.armor.boreal.hand" = 250_000
-"common.items.armor.boreal.pants" = 250_000
-"common.items.armor.boreal.shoulder" = 250_000
-"common.items.armor.misc.head.boreal_warhelm" = 450_000
+# Armor
+
+"armor.misc.neck.carcanet_of_wrath" = 20_000
+
+## Boreal Armor
+"armor.boreal.back" = 250_000
+"armor.boreal.belt" = 250_000
+"armor.boreal.chest" = 250_000
+"armor.boreal.foot" = 250_000
+"armor.boreal.hand" = 250_000
+"armor.boreal.pants" = 250_000
+"armor.boreal.shoulder" = 250_000
+"armor.misc.head.boreal_warhelm" = 450_000
 
 # Hats
-"common.items.armor.misc.head.cat_capuche" = 700_000
-"common.items.armor.misc.head.hare_hat" = 100_000
-"common.items.armor.misc.head.winged_coronet" = 40_000
-"common.items.calendar.christmas.armor.misc.head.woolly_wintercap" = 800_000
+"armor.misc.head.cat_capuche" = 700_000
+"armor.misc.head.hare_hat" = 100_000
+"armor.misc.head.winged_coronet" = 40_000
+"calendar.christmas.armor.misc.head.woolly_wintercap" = 800_000
 
 # Crafting
-"common.items.crafting_ing.brinestone" = 2000
-"common.items.crafting_ing.coral_brach" = 1000
-"common.items.crafting_ing.dwarven_battery" = 40000
-"common.items.log.eldwood" = 3000
-"common.items.mineral.ingot.orichalcum" = 8000
+"crafting_ing.alkahest" = 6_000
+"crafting_ing.brinestone" = 2_000
+"crafting_ing.coral_brach" = 1_000
+"crafting_ing.hide.dragon_scale" = 5_000
+"crafting_ing.dwarven_battery" = 40_000
+"log.eldwood" = 3_000
+"mineral.ingot.orichalcum" = 8_000
+"mineral.ore.ancient_gold" = 10_000
 
 # Potions
-"common.items.consumable.potion_minor" = 150
+"consumable.potion_minor" = 150
 
 # Gliders
-"common.items.glider.skullgrin" = 20_000
+"glider.skullgrin" = 20_000
 
 # Recipes
-"common.items.recipes.equipment.advanced" = 8000
-"common.items.recipes.unique.mindflayer_spellbag" = 10000
-"common.items.recipes.unique.abyssal_gorget" = 6000
+"recipes.equipment.advanced" = 8_000
+"recipes.unique.mindflayer_spellbag" = 10_000
+"recipes.unique.abyssal_gorget" = 6_000
 
 # Instruments
-"common.items.tool.instruments.icy_talharpa" = 500_000
-"common.items.tool.instruments.steeltonguedrum" = 300_000
+"tool.instruments.icy_talharpa" = 500_000
+"tool.instruments.steeltonguedrum" = 300_000
 
 # Legendary Weapons
-"common.items.weapons.axe.parashu" = 100_000
-"common.items.weapons.sword.caladbolg" = 150_000
-"common.items.weapons.staff.laevateinn" = 60_000
-"common.items.weapons.hammer.mjolnir" = 150_000
-"common.items.weapons.sceptre.caduceus" = 150_000
+"weapons.axe.parashu" = 100_000
+"weapons.sword.caladbolg" = 150_000
+"weapons.staff.laevateinn" = 60_000
+"weapons.hammer.mjolnir" = 150_000
+"weapons.sceptre.caduceus" = 150_000
 
 # Lanterns
-"common.items.boss_drops.lantern" = 40_000 # Magic Lantern
-"common.items.lantern.blue_0" = 20_000
-"common.items.lantern.geode_purp" = 20_000
+"boss_drops.lantern" = 40_000 # Magic Lantern
+"lantern.blue_0" = 20_000
+"lantern.geode_purp" = 20_000

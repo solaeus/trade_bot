@@ -72,6 +72,6 @@ fn main() {
     .expect("Failed to create bot");
 
     loop {
-        let _ = bot.tick().inspect_err(|error| eprintln!("{error}"));
+        let _ = bot.tick().inspect_err(|error| log::error!("{error}"));
     }
 }

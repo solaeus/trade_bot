@@ -15,7 +15,7 @@ use veloren_common::{
     trade::{PendingTrade, TradeAction, TradeResult},
     uid::Uid,
     uuid::Uuid,
-    ViewDistances,
+    DamageSource, ViewDistances,
 };
 use veloren_common_net::sync::WorldSyncExt;
 
@@ -43,7 +43,7 @@ pub struct Bot {
 
 impl Bot {
     /// Connect to the official veloren server, select the specified character
-    /// return a Bot instance ready to run.
+    /// and return a Bot instance ready to run.
     pub fn new(
         username: String,
         password: &str,
@@ -224,6 +224,10 @@ impl Bot {
                 }
             }
             VelorenEvent::Outcome(Outcome::HealthChange { info, .. }) => {
+                if let Some(DamageSource::Buff(_)) = info.cause {
+                    return Ok(());
+                }
+
                 if let Some(uid) = self.client.uid() {
                     if uid == info.target
                         && info.amount.is_sign_negative()
@@ -236,8 +240,15 @@ impl Bot {
                     }
                 }
             }
-            VelorenEvent::TradeComplete { result, .. } => {
-                log::info!("Completed trade: {result:?}");
+            VelorenEvent::TradeComplete { result, trade } => {
+                let my_party = trade
+                    .which_party(self.client.uid().ok_or("Failed to find uid")?)
+                    .ok_or("Failed to find trade party")?;
+                let their_party = if my_party == 0 { 1 } else { 0 };
+                let their_uid = trade.parties[their_party];
+                let their_name = self.find_name(&their_uid).ok_or("Failed to find name")?;
+
+                log::info!("End of trade with {their_name}: {result:?}");
 
                 if let TradeMode::Take = self.trade_mode {
                     self.trade_mode = TradeMode::Trade;
@@ -274,15 +285,14 @@ impl Bot {
     }
 
     fn handle_trade(&mut self, trade: PendingTrade) -> Result<(), String> {
-        let my_offer_index = trade
-            .which_party(self.client.uid().ok_or("Failed to get uid")?)
-            .ok_or("Failed to get offer index")?;
-        let their_offer_index = if my_offer_index == 0 { 1 } else { 0 };
-
         if trade.is_empty_trade() {
             return Ok(());
         }
 
+        let my_offer_index = trade
+            .which_party(self.client.uid().ok_or("Failed to get uid")?)
+            .ok_or("Failed to get offer index")?;
+        let their_offer_index = if my_offer_index == 0 { 1 } else { 0 };
         let (my_offer, their_offer, them) = {
             (
                 &trade.offers[my_offer_index],
@@ -421,13 +431,6 @@ impl Bot {
             return Ok(());
         }
 
-        let (my_coins, their_coins) =
-            if let (Some(mine), Some(theirs)) = (get_my_coins, get_their_coins) {
-                (mine, theirs)
-            } else {
-                return Ok(());
-            };
-
         let difference = their_offered_items_value - my_offered_items_value;
 
         // If the trade is balanced
@@ -439,14 +442,16 @@ impl Bot {
         } else if difference.is_positive() {
             // If they are offering coins
             if their_offered_coin_amount > 0 {
-                // Remove their coins to balance
-                self.client.perform_trade_action(TradeAction::RemoveItem {
-                    item: their_coins,
-                    quantity: difference as u32,
-                    ours: false,
-                });
+                if let Some(their_coins) = get_their_coins {
+                    // Remove their coins to balance
+                    self.client.perform_trade_action(TradeAction::RemoveItem {
+                        item: their_coins,
+                        quantity: difference as u32,
+                        ours: false,
+                    });
+                }
             // If they are not offering coins
-            } else {
+            } else if let Some(my_coins) = get_my_coins {
                 // Add my coins to balanace
                 self.client.perform_trade_action(TradeAction::AddItem {
                     item: my_coins,
@@ -458,14 +463,16 @@ impl Bot {
         } else if difference.is_negative() {
             // If I am offering coins
             if my_offered_coin_amount > 0 {
-                // Remove my coins to balance
-                self.client.perform_trade_action(TradeAction::RemoveItem {
-                    item: my_coins,
-                    quantity: difference.unsigned_abs(),
-                    ours: true,
-                });
+                if let Some(my_coins) = get_my_coins {
+                    // Remove my coins to balance
+                    self.client.perform_trade_action(TradeAction::RemoveItem {
+                        item: my_coins,
+                        quantity: difference.unsigned_abs(),
+                        ours: true,
+                    });
+                }
             // If I am not offering coins
-            } else {
+            } else if let Some(their_coins) = get_their_coins {
                 // Add their coins to balance
                 self.client.perform_trade_action(TradeAction::AddItem {
                     item: their_coins,

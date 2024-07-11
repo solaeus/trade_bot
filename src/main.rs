@@ -60,7 +60,7 @@ fn main() {
         .collect();
 
     let mut bot = Bot::new(
-        &secrets.username,
+        secrets.username,
         &secrets.password,
         &secrets.character,
         secrets.admins,

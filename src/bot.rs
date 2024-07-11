@@ -24,6 +24,7 @@ const COINS: &str = "common.items.utility.coins";
 /// A Bot instance represents an active connection to the server and it will
 /// attempt to run every time the `tick` function is called.
 pub struct Bot {
+    username: String,
     position: [f32; 3],
     orientation: f32,
     admins: Vec<String>,
@@ -44,7 +45,7 @@ impl Bot {
     /// Connect to the official veloren server, select the specified character
     /// return a Bot instance ready to run.
     pub fn new(
-        username: &str,
+        username: String,
         password: &str,
         character: &str,
         admins: Vec<String>,
@@ -55,7 +56,7 @@ impl Bot {
     ) -> Result<Self, String> {
         log::info!("Connecting to veloren");
 
-        let mut client = connect_to_veloren(username, password)?;
+        let mut client = connect_to_veloren(&username, password)?;
         let mut clock = Clock::new(Duration::from_secs_f64(1.0 / 30.0));
 
         log::info!("Selecting a character");
@@ -90,6 +91,7 @@ impl Bot {
         let now = Instant::now();
 
         Ok(Bot {
+            username,
             position,
             orientation,
             admins,
@@ -137,7 +139,10 @@ impl Bot {
             if self.last_announcement.elapsed() > Duration::from_secs(1200) {
                 self.client.send_command(
                     "region".to_string(),
-                    vec!["I'm a bot. You can trade with me or use /say or /tell to check prices: 'price [search_term]'".to_string()],
+                    vec![format!(
+                        "I'm a bot. You can trade with me or check prices: '/tell {} price [search_term]'.",
+                        self.username
+                    )],
                 );
 
                 self.last_announcement = Instant::now();
@@ -153,10 +158,10 @@ impl Bot {
     fn handle_veloren_event(&mut self, event: VelorenEvent) -> Result<(), String> {
         match event {
             VelorenEvent::Chat(message) => {
-                let sender = match message.chat_type {
-                    ChatType::Tell(uid, _) => uid,
-                    ChatType::Say(uid) => uid,
-                    _ => return Ok(()),
+                let sender = if let ChatType::Tell(uid, _) = message.chat_type {
+                    uid
+                } else {
+                    return Ok(());
                 };
                 let content = message.content().as_plain().unwrap_or_default();
                 let mut split_content = content.split(' ');

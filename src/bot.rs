@@ -36,7 +36,6 @@ pub struct Bot {
     last_action: Instant,
     last_announcement: Instant,
     last_ouch: Instant,
-    last_cost_difference: i32,
 }
 
 impl Bot {
@@ -98,7 +97,6 @@ impl Bot {
             last_action: now,
             last_announcement: now,
             last_ouch: now,
-            last_cost_difference: 0,
         })
     }
 
@@ -398,7 +396,6 @@ impl Bot {
             // Accept
             self.client
                 .perform_trade_action(TradeAction::Accept(trade.phase));
-
         // If they are offering more
         } else if difference.is_positive() {
             // If they are offering coins
@@ -438,22 +435,6 @@ impl Bot {
                 });
             }
         }
-
-        if difference != self.last_cost_difference {
-            let their_name = self
-                .find_name(&trade.parties[their_offer_index])
-                .ok_or("Failed to find player name")?
-                .to_string();
-
-            log::debug!("Sending cost to {their_name}");
-
-            self.client.send_command(
-                "tell".to_string(),
-                vec![their_name, format!("My offer: {my_offered_items_value}. Your offer: {their_offered_items_value}.")],
-            );
-        }
-
-        self.last_cost_difference = difference;
 
         Ok(())
     }

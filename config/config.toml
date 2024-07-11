@@ -5,9 +5,7 @@ orientation = "West"
 "food.cheese" = 50
 
 [sell_prices]
-
 # Armor
-
 "armor.misc.neck.carcanet_of_wrath" = 20_000
 
 ## Boreal Armor

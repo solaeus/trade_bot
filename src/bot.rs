@@ -5,7 +5,7 @@ use std::{
 };
 
 use tokio::runtime::Runtime;
-use vek::{num_traits::Float, Quaternion};
+use vek::Quaternion;
 use veloren_client::{addr::ConnectionArgs, Client, Event as VelorenEvent, WorldExt};
 use veloren_common::{
     clock::Clock,
@@ -14,6 +14,7 @@ use veloren_common::{
     time::DayPeriod,
     trade::{PendingTrade, TradeAction, TradeResult},
     uid::Uid,
+    uuid::Uuid,
     ViewDistances,
 };
 use veloren_common_net::sync::WorldSyncExt;
@@ -24,7 +25,8 @@ const COINS: &str = "common.items.utility.coins";
 /// attempt to run every time the `tick` function is called.
 pub struct Bot {
     position: [f32; 3],
-    orientation: String,
+    orientation: f32,
+    admins: Vec<String>,
 
     client: Client,
     clock: Clock,
@@ -45,10 +47,11 @@ impl Bot {
         username: &str,
         password: &str,
         character: &str,
+        admins: Vec<String>,
         buy_prices: HashMap<String, u32>,
         sell_prices: HashMap<String, u32>,
         position: [f32; 3],
-        orientation: String,
+        orientation: f32,
     ) -> Result<Self, String> {
         log::info!("Connecting to veloren");
 
@@ -89,6 +92,7 @@ impl Bot {
         Ok(Bot {
             position,
             orientation,
+            admins,
             client,
             clock,
             buy_prices,
@@ -168,7 +172,15 @@ impl Bot {
                         }
                     }
                     "take" => {
-                        if !self.client.is_trading() {
+                        let sender_uuid = self
+                            .find_uuid(&sender)
+                            .ok_or("Failed to find uuid")?
+                            .to_string();
+                        let sender_name = self.find_name(&sender).ok_or("Failed to find name")?;
+                        let sender_is_admin =
+                            self.admins.contains(&sender_uuid) || self.admins.contains(sender_name);
+
+                        if sender_is_admin && !self.client.is_trading() {
                             self.trade_mode = TradeMode::Take;
                             self.client.send_invite(sender, InviteKind::Trade);
                         }
@@ -529,10 +541,7 @@ impl Bot {
 
             self.client.send_command(
                 "tell".to_string(),
-                vec![
-                    player_name.clone(),
-                    format!("I don't have a price for that item."),
-                ],
+                vec![player_name, format!("I don't have a price for that item.")],
             );
         }
 
@@ -562,22 +571,9 @@ impl Bot {
         let ecs = self.client.state_mut().ecs();
         let mut position_state = ecs.write_storage::<Pos>();
         let mut orientation_state = ecs.write_storage::<Ori>();
-        let orientation = match self.orientation.to_lowercase().as_str() {
-            "west" => Ori::default()
-                .uprighted()
-                .rotated(Quaternion::rotation_z(90.0.to_radians())),
-            "south" => Ori::default()
-                .uprighted()
-                .rotated(Quaternion::rotation_z(180.0.to_radians())),
-            "east" => Ori::default()
-                .uprighted()
-                .rotated(Quaternion::rotation_z(270.0.to_radians())),
-            "north" => Ori::default(),
-            _ => {
-                return Err("Orientation must north, east, south or west".to_string());
-            }
-        };
-
+        let orientation = Ori::default()
+            .uprighted()
+            .rotated(Quaternion::rotation_z(self.orientation.to_radians()));
         orientation_state
             .insert(entity, orientation)
             .map_err(|error| error.to_string())?;
@@ -588,20 +584,20 @@ impl Bot {
         Ok(())
     }
 
-    fn _find_uid<'a>(&'a self, name: &str) -> Option<&'a Uid> {
-        self.client.player_list().iter().find_map(|(id, info)| {
-            if info.player_alias == name {
-                Some(id)
+    fn find_uuid(&self, target: &Uid) -> Option<Uuid> {
+        self.client.player_list().iter().find_map(|(uid, info)| {
+            if uid == target {
+                Some(info.uuid)
             } else {
                 None
             }
         })
     }
 
-    fn _find_uuid(&self, name: &str) -> Option<String> {
-        self.client.player_list().iter().find_map(|(_, info)| {
+    fn _find_uid<'a>(&'a self, name: &str) -> Option<&'a Uid> {
+        self.client.player_list().iter().find_map(|(id, info)| {
             if info.player_alias == name {
-                Some(info.uuid.to_string())
+                Some(id)
             } else {
                 None
             }

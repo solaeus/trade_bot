@@ -10,6 +10,7 @@ pub struct Secrets {
     pub username: String,
     pub password: String,
     pub character: String,
+    pub admins: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -17,7 +18,7 @@ struct Config {
     pub buy_prices: HashMap<String, u32>,
     pub sell_prices: HashMap<String, u32>,
     pub position: [f32; 3],
-    pub orientation: String,
+    pub orientation: f32,
 }
 
 fn main() {
@@ -62,6 +63,7 @@ fn main() {
         &secrets.username,
         &secrets.password,
         &secrets.character,
+        secrets.admins,
         buy_prices_with_full_id,
         sell_prices_with_full_id,
         config.position,

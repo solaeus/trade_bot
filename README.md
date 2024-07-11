@@ -16,6 +16,7 @@ Create a "secrets.toml" file:
 # secrets.toml
 username = "my_username"
 password = "my_password"
+character = "my_character"
 ```
 
 Then create a secret to pass the file securely to the container.
@@ -29,7 +30,6 @@ You will also need a "config.toml":
 
 ```toml
 # config.toml
-character = "my_character"
 position = [0.0, 0.0, 0.0] # Change these to the desired X, Y, Z coordinates
 orientation = "West"
 

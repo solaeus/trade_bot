@@ -33,10 +33,10 @@ pub struct Bot {
     sell_prices: HashMap<String, u32>,
     trade_mode: TradeMode,
 
-    is_player_notified: bool,
     last_action: Instant,
     last_announcement: Instant,
     last_ouch: Instant,
+    last_cost_difference: i32,
 }
 
 impl Bot {
@@ -95,10 +95,10 @@ impl Bot {
             buy_prices,
             sell_prices,
             trade_mode: TradeMode::Trade,
-            is_player_notified: false,
             last_action: now,
             last_announcement: now,
             last_ouch: now,
+            last_cost_difference: 0,
         })
     }
 
@@ -135,7 +135,7 @@ impl Bot {
             if self.last_announcement.elapsed() > Duration::from_secs(1200) {
                 self.client.send_command(
                     "region".to_string(),
-                    vec!["I'm a bot. You can trade with me or use /say or /tell to check prices: 'price [item_name]' or 'prices'.".to_string()],
+                    vec!["I'm a bot. You can trade with me or use /say or /tell to check prices: 'price [item_name]'".to_string()],
                 );
 
                 self.last_announcement = Instant::now();
@@ -158,58 +158,12 @@ impl Bot {
                 };
                 let content = message.content().as_plain().unwrap_or_default();
                 let (command, item_name) = content.split_once(' ').unwrap_or((content, ""));
+                let item_name = item_name.to_lowercase();
 
                 match command {
                     "price" => {
-                        let player_name = self
-                            .find_name(&sender)
-                            .ok_or("Failed to find player name")?
-                            .to_string();
-                        let mut found = false;
-
-                        for (item_id, price) in &self.buy_prices {
-                            if item_id.contains(item_name) {
-                                log::debug!("Sending price info on {item_id} to {player_name}");
-
-                                self.client.send_command(
-                                    "tell".to_string(),
-                                    vec![
-                                        player_name.clone(),
-                                        format!("I buy {item_id} for {price} coins."),
-                                    ],
-                                );
-
-                                found = true;
-                            }
-                        }
-
-                        for (item_id, price) in &self.sell_prices {
-                            if item_id.contains(item_name) {
-                                log::debug!("Sending price info on {item_id} to {player_name}");
-
-                                self.client.send_command(
-                                    "tell".to_string(),
-                                    vec![
-                                        player_name.clone(),
-                                        format!("I sell {item_id} for {price} coins."),
-                                    ],
-                                );
-
-                                found = true;
-                            }
-                        }
-
-                        if !found {
-                            self.client.send_command(
-                                "tell".to_string(),
-                                vec![
-                                    player_name.clone(),
-                                    format!("I don't have a price for that item."),
-                                ],
-                            );
-                        }
+                        self.send_price_info(&sender, &item_name)?;
                     }
-                    "prices" => self.send_all_price_info(&sender)?,
                     "take" => {
                         if !self.client.is_trading() {
                             self.trade_mode = TradeMode::Take;
@@ -249,7 +203,6 @@ impl Bot {
                 log::info!("Completed trade: {result:?}");
 
                 if let TradeMode::Take = self.trade_mode {
-                    self.is_player_notified = false;
                     self.trade_mode = TradeMode::Trade;
                 }
 
@@ -289,12 +242,6 @@ impl Bot {
             .ok_or("Failed to get offer index")?;
         let their_offer_index = if my_offer_index == 0 { 1 } else { 0 };
 
-        if !self.is_player_notified {
-            self.send_all_price_info(&trade.parties[their_offer_index])?;
-
-            self.is_player_notified = true;
-        }
-
         if trade.is_empty_trade() {
             return Ok(());
         }
@@ -311,16 +258,14 @@ impl Bot {
             )
         };
         let inventories = self.client.inventories();
-        let my_inventory = inventories.get(self.client.entity()).unwrap();
-        let my_coins = my_inventory
-            .get_slot_of_item_by_def_id(&ItemDefinitionIdOwned::Simple(COINS.to_string()))
-            .ok_or("Failed to find coins".to_string())?;
-        let their_inventory = inventories
-            .get(them)
-            .ok_or("Failed to find inventory".to_string())?;
-        let their_coins = their_inventory
-            .get_slot_of_item_by_def_id(&ItemDefinitionIdOwned::Simple(COINS.to_string()))
-            .ok_or("Failed to find coins")?;
+        let my_inventory = inventories
+            .get(self.client.entity())
+            .ok_or("Failed to find inventory")?;
+        let get_my_coins = my_inventory
+            .get_slot_of_item_by_def_id(&ItemDefinitionIdOwned::Simple(COINS.to_string()));
+        let their_inventory = inventories.get(them).ok_or("Failed to find inventory")?;
+        let get_their_coins = their_inventory
+            .get_slot_of_item_by_def_id(&ItemDefinitionIdOwned::Simple(COINS.to_string()));
         let (mut their_offered_coin_amount, mut my_offered_coin_amount) = (0, 0);
         let their_offered_items_value =
             their_offer
@@ -439,6 +384,13 @@ impl Bot {
             return Ok(());
         }
 
+        let (my_coins, their_coins) =
+            if let (Some(mine), Some(theirs)) = (get_my_coins, get_their_coins) {
+                (mine, theirs)
+            } else {
+                return Ok(());
+            };
+
         let difference = their_offered_items_value - my_offered_items_value;
 
         // If the trade is balanced
@@ -447,7 +399,6 @@ impl Bot {
             self.client
                 .perform_trade_action(TradeAction::Accept(trade.phase));
 
-            return Ok(());
         // If they are offering more
         } else if difference.is_positive() {
             // If they are offering coins
@@ -488,6 +439,22 @@ impl Bot {
             }
         }
 
+        if difference != self.last_cost_difference {
+            let their_name = self
+                .find_name(&trade.parties[their_offer_index])
+                .ok_or("Failed to find player name")?
+                .to_string();
+
+            log::debug!("Sending cost to {their_name}");
+
+            self.client.send_command(
+                "tell".to_string(),
+                vec![their_name, format!("My offer: {my_offered_items_value}. Your offer: {their_offered_items_value}.")],
+            );
+        }
+
+        self.last_cost_difference = difference;
+
         Ok(())
     }
 
@@ -511,23 +478,60 @@ impl Bot {
         Ok(())
     }
 
-    fn send_all_price_info(&mut self, target: &Uid) -> Result<(), String> {
+    fn send_price_info(&mut self, target: &Uid, item_name: &str) -> Result<(), String> {
         let player_name = self
             .find_name(target)
             .ok_or("Failed to find player name")?
             .to_string();
+        let mut found = false;
 
-        self.client.send_command(
-            "tell".to_string(),
-            vec![
-                player_name.clone(),
-                format!("Buy prices: {:?}", self.buy_prices),
-            ],
-        );
-        self.client.send_command(
-            "tell".to_string(),
-            vec![player_name, format!("Sell prices: {:?}", self.sell_prices)],
-        );
+        for (item_id, price) in &self.buy_prices {
+            if item_id.contains(item_name) {
+                let short_id = item_id.splitn(3, '.').last().unwrap_or_default();
+
+                log::debug!("Sending price info on {short_id} to {player_name}");
+
+                self.client.send_command(
+                    "tell".to_string(),
+                    vec![
+                        player_name.clone(),
+                        format!("Buying {short_id} for {price} coins."),
+                    ],
+                );
+
+                found = true;
+            }
+        }
+
+        for (item_id, price) in &self.sell_prices {
+            if item_id.contains(item_name) {
+                let short_id = item_id.splitn(3, '.').last().unwrap_or_default();
+
+                log::debug!("Sending price info on {short_id} to {player_name}");
+
+                self.client.send_command(
+                    "tell".to_string(),
+                    vec![
+                        player_name.clone(),
+                        format!("Selling {short_id} for {price} coins."),
+                    ],
+                );
+
+                found = true;
+            }
+        }
+
+        if !found {
+            log::debug!("Found no price for \"{item_name}\" for {player_name}");
+
+            self.client.send_command(
+                "tell".to_string(),
+                vec![
+                    player_name.clone(),
+                    format!("I don't have a price for that item."),
+                ],
+            );
+        }
 
         Ok(())
     }
@@ -535,31 +539,10 @@ impl Bot {
     fn find_name<'a>(&'a self, uid: &Uid) -> Option<&'a String> {
         self.client.player_list().iter().find_map(|(id, info)| {
             if id == uid {
-                if let Some(character_info) = &info.character {
-                    return Some(&character_info.name);
-                }
+                return Some(&info.player_alias);
             }
+
             None
-        })
-    }
-
-    fn _find_uid<'a>(&'a self, name: &str) -> Option<&'a Uid> {
-        self.client.player_list().iter().find_map(|(id, info)| {
-            if info.player_alias == name {
-                Some(id)
-            } else {
-                None
-            }
-        })
-    }
-
-    fn _find_uuid(&self, name: &str) -> Option<String> {
-        self.client.player_list().iter().find_map(|(_, info)| {
-            if info.player_alias == name {
-                Some(info.uuid.to_string())
-            } else {
-                None
-            }
         })
     }
 
@@ -600,6 +583,26 @@ impl Bot {
             .map_err(|error| error.to_string())?;
 
         Ok(())
+    }
+
+    fn _find_uid<'a>(&'a self, name: &str) -> Option<&'a Uid> {
+        self.client.player_list().iter().find_map(|(id, info)| {
+            if info.player_alias == name {
+                Some(id)
+            } else {
+                None
+            }
+        })
+    }
+
+    fn _find_uuid(&self, name: &str) -> Option<String> {
+        self.client.player_list().iter().find_map(|(_, info)| {
+            if info.player_alias == name {
+                Some(info.uuid.to_string())
+            } else {
+                None
+            }
+        })
     }
 }
 

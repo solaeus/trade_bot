@@ -1,4 +1,3 @@
-character = "crabobot_test"
 position = [17726.0, 14957.0, 237.0]
 orientation = "West"
 
@@ -6,6 +5,8 @@ orientation = "West"
 "common.items.food.cheese" = 50
 
 [sell_prices]
+
+# Boreal Armor
 "common.items.armor.boreal.back" = 250_000
 "common.items.armor.boreal.belt" = 250_000
 "common.items.armor.boreal.chest" = 250_000
@@ -13,31 +14,44 @@ orientation = "West"
 "common.items.armor.boreal.hand" = 250_000
 "common.items.armor.boreal.pants" = 250_000
 "common.items.armor.boreal.shoulder" = 250_000
-
 "common.items.armor.misc.head.boreal_warhelm" = 450_000
-"common.items.armor.misc.head.cat_capuche" = 600_000
+
+# Hats
+"common.items.armor.misc.head.cat_capuche" = 700_000
 "common.items.armor.misc.head.hare_hat" = 100_000
 "common.items.armor.misc.head.winged_coronet" = 40_000
+"common.items.calendar.christmas.armor.misc.head.woolly_wintercap" = 800_000
 
+# Crafting
 "common.items.crafting_ing.brinestone" = 2000
 "common.items.crafting_ing.coral_brach" = 1000
 "common.items.crafting_ing.dwarven_battery" = 40000
-
-"common.items.consumable.potion_minor" = 150
-
-"common.items.glider.skullgrin" = 20_000
-
 "common.items.log.eldwood" = 3000
-
 "common.items.mineral.ingot.orichalcum" = 8000
 
+# Potions
+"common.items.consumable.potion_minor" = 150
+
+# Gliders
+"common.items.glider.skullgrin" = 20_000
+
+# Recipes
+"common.items.recipes.equipment.advanced" = 8000
+"common.items.recipes.unique.mindflayer_spellbag" = 10000
+"common.items.recipes.unique.abyssal_gorget" = 6000
+
+# Instruments
 "common.items.tool.instruments.icy_talharpa" = 500_000
 "common.items.tool.instruments.steeltonguedrum" = 300_000
 
+# Legendary Weapons
 "common.items.weapons.axe.parashu" = 100_000
-"common.items.weapons.sword.caladbolg" = 100_000
+"common.items.weapons.sword.caladbolg" = 150_000
 "common.items.weapons.staff.laevateinn" = 60_000
-"common.items.weapons.hammer.mjolnir" = 100_000
+"common.items.weapons.hammer.mjolnir" = 150_000
 "common.items.weapons.sceptre.caduceus" = 150_000
 
-"common.items.lantern.geode_purple" = 20_000
+# Lanterns
+"common.items.boss_drops.lantern" = 40_000 # Magic Lantern
+"common.items.lantern.blue_0" = 20_000
+"common.items.lantern.geode_purp" = 20_000

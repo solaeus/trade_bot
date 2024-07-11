@@ -9,11 +9,11 @@ use serde::{Deserialize, Serialize};
 pub struct Secrets {
     pub username: String,
     pub password: String,
+    pub character: String,
 }
 
 #[derive(Serialize, Deserialize)]
 struct Config {
-    pub character: String,
     pub buy_prices: HashMap<String, u32>,
     pub sell_prices: HashMap<String, u32>,
     pub position: [f32; 3],
@@ -42,7 +42,7 @@ fn main() {
     let mut bot = Bot::new(
         &secrets.username,
         &secrets.password,
-        &config.character,
+        &secrets.character,
         config.buy_prices,
         config.sell_prices,
         config.position,

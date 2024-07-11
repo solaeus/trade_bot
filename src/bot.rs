@@ -4,16 +4,12 @@ use std::{
     time::{Duration, Instant},
 };
 
-use rand::{thread_rng, Rng};
 use tokio::runtime::Runtime;
 use vek::Quaternion;
 use veloren_client::{addr::ConnectionArgs, Client, Event as VelorenEvent, WorldExt};
 use veloren_common::{
     clock::Clock,
-    comp::{
-        invite::InviteKind, item::ItemDefinitionIdOwned, Agent, Anchor, ChatType, ControllerInputs,
-        Ori, Pos,
-    },
+    comp::{invite::InviteKind, item::ItemDefinitionIdOwned, ChatType, ControllerInputs, Ori, Pos},
     outcome::Outcome,
     time::DayPeriod,
     trade::{PendingTrade, TradeAction, TradeResult},
@@ -22,13 +18,6 @@ use veloren_common::{
     DamageSource, ViewDistances,
 };
 use veloren_common_net::sync::WorldSyncExt;
-use veloren_world::{
-    civ::WorldCivStage,
-    sim::Location,
-    site::{Settlement, SiteKindMeta},
-    site2::Site,
-    SettlementKindMeta,
-};
 
 const COINS: &str = "common.items.utility.coins";
 
@@ -50,6 +39,7 @@ pub struct Bot {
     last_action: Instant,
     last_announcement: Instant,
     last_ouch: Instant,
+    sort_count: u8,
 }
 
 impl Bot {
@@ -114,6 +104,7 @@ impl Bot {
             last_action: now,
             last_announcement: now,
             last_ouch: now,
+            sort_count: 0,
         })
     }
 
@@ -135,6 +126,12 @@ impl Bot {
 
             self.handle_position_and_orientation()?;
             self.handle_lantern();
+
+            if self.sort_count > 0 {
+                self.client.sort_inventory();
+
+                self.sort_count -= 1;
+            }
 
             if let Some((_, trade, _)) = self.client.pending_trade() {
                 match self.trade_mode {
@@ -205,9 +202,9 @@ impl Bot {
 
                                 log::debug!("Sorting inventory {sort_count} times");
 
-                                for _ in 0..sort_count {
-                                    self.client.sort_inventory();
-                                }
+                                self.client.sort_inventory();
+
+                                self.sort_count = sort_count.saturating_sub(1);
                             } else {
                                 log::debug!("Sorting inventory");
                                 self.client.sort_inventory();

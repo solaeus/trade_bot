@@ -1,15 +1,19 @@
 use std::{
-    collections::HashMap,
+    collections::BTreeMap,
     sync::Arc,
     time::{Duration, Instant},
 };
 
+use rand::{thread_rng, Rng};
 use tokio::runtime::Runtime;
 use vek::Quaternion;
 use veloren_client::{addr::ConnectionArgs, Client, Event as VelorenEvent, WorldExt};
 use veloren_common::{
     clock::Clock,
-    comp::{invite::InviteKind, item::ItemDefinitionIdOwned, ChatType, ControllerInputs, Ori, Pos},
+    comp::{
+        invite::InviteKind, item::ItemDefinitionIdOwned, Agent, Anchor, ChatType, ControllerInputs,
+        Ori, Pos,
+    },
     outcome::Outcome,
     time::DayPeriod,
     trade::{PendingTrade, TradeAction, TradeResult},
@@ -18,6 +22,13 @@ use veloren_common::{
     DamageSource, ViewDistances,
 };
 use veloren_common_net::sync::WorldSyncExt;
+use veloren_world::{
+    civ::WorldCivStage,
+    sim::Location,
+    site::{Settlement, SiteKindMeta},
+    site2::Site,
+    SettlementKindMeta,
+};
 
 const COINS: &str = "common.items.utility.coins";
 
@@ -32,8 +43,8 @@ pub struct Bot {
     client: Client,
     clock: Clock,
 
-    buy_prices: HashMap<String, u32>,
-    sell_prices: HashMap<String, u32>,
+    buy_prices: BTreeMap<String, u32>,
+    sell_prices: BTreeMap<String, u32>,
     trade_mode: TradeMode,
 
     last_action: Instant,
@@ -49,8 +60,8 @@ impl Bot {
         password: &str,
         character: &str,
         admins: Vec<String>,
-        buy_prices: HashMap<String, u32>,
-        sell_prices: HashMap<String, u32>,
+        buy_prices: BTreeMap<String, u32>,
+        sell_prices: BTreeMap<String, u32>,
         position: [f32; 3],
         orientation: f32,
     ) -> Result<Self, String> {
@@ -141,14 +152,16 @@ impl Bot {
 
             self.last_action = Instant::now();
 
-            if self.last_announcement.elapsed() > Duration::from_secs(1200) {
+            if self.last_announcement.elapsed() > Duration::from_secs(1800) {
+                log::info!("Making an announcement");
+
                 self.client.send_command(
-                    "region".to_string(),
-                    vec![format!(
-                        "I'm a bot. You can trade with me or check prices: '/tell {} price [search_term]'.",
-                        self.username
-                    )],
-                );
+                        "region".to_string(),
+                        vec![format!(
+                            "I'm a bot. You can trade with me or check prices: '/tell {} price [search_term]'.",
+                            self.username
+                        )],
+                    );
 
                 self.last_announcement = Instant::now();
             }
@@ -208,6 +221,24 @@ impl Bot {
                             is_correct_format = true;
                             self.trade_mode = TradeMode::AdminAccess;
                             self.client.send_invite(sender, InviteKind::Trade);
+                        }
+                    }
+                    "position" => {
+                        if self.is_user_admin(&sender)? {
+                            if let (Some(x), Some(y), Some(z)) = (
+                                split_content.next(),
+                                split_content.next(),
+                                split_content.next(),
+                            ) {
+                                let position = [
+                                    x.parse::<f32>().map_err(|error| error.to_string())?,
+                                    y.parse::<f32>().map_err(|error| error.to_string())?,
+                                    z.parse::<f32>().map_err(|error| error.to_string())?,
+                                ];
+
+                                is_correct_format = true;
+                                self.position = position;
+                            }
                         }
                     }
                     _ => {}
@@ -568,16 +599,6 @@ impl Bot {
         Ok(self.admins.contains(sender_name) || self.admins.contains(&sender_uuid))
     }
 
-    fn find_name<'a>(&'a self, uid: &Uid) -> Option<&'a String> {
-        self.client.player_list().iter().find_map(|(id, info)| {
-            if id == uid {
-                return Some(&info.player_alias);
-            }
-
-            None
-        })
-    }
-
     fn handle_position_and_orientation(&mut self) -> Result<(), String> {
         let current_position = self.client.current::<Pos>();
 
@@ -602,6 +623,16 @@ impl Bot {
             .map_err(|error| error.to_string())?;
 
         Ok(())
+    }
+
+    fn find_name<'a>(&'a self, uid: &Uid) -> Option<&'a String> {
+        self.client.player_list().iter().find_map(|(id, info)| {
+            if id == uid {
+                return Some(&info.player_alias);
+            }
+
+            None
+        })
     }
 
     fn find_uuid(&self, target: &Uid) -> Option<Uuid> {

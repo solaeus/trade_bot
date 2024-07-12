@@ -150,13 +150,13 @@ impl Bot {
                 self.client.accept_invite();
             }
 
-            self.last_trade_action = Instant::now();
-
             if self.last_announcement.elapsed() > Duration::from_secs(1800) {
                 self.handle_announcement()?;
 
                 self.last_announcement = Instant::now();
             }
+
+            self.last_trade_action = Instant::now();
         }
 
         self.clock.tick();
@@ -628,19 +628,6 @@ impl Bot {
 
         if let Some(current_position) = current_position {
             if current_position.0 == self.position.into() {
-                for (_, SiteInfoRich { site, .. }) in self.client.sites() {
-                    let site_name = &site.name;
-                    let site_position = site.wpos;
-
-                    let x_difference = self.position[0] - site_position[0] as f32;
-                    let y_difference = self.position[1] - site_position[1] as f32;
-
-                    if x_difference.abs() < 100.0 && y_difference.abs() < 100.0 {
-                        println!("{current_position:?} {site_position}");
-                        println!("{site_name:?} {site_position}");
-                    }
-                }
-
                 return Ok(());
             }
         }

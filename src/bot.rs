@@ -150,7 +150,7 @@ impl Bot {
                 self.client.accept_invite();
             }
 
-            if self.last_announcement.elapsed() > Duration::from_secs(1800) {
+            if self.last_announcement.elapsed() > Duration::from_mins(30) {
                 self.handle_announcement()?;
 
                 self.last_announcement = Instant::now();
@@ -176,20 +176,17 @@ impl Bot {
                 let content = message.content().as_plain().unwrap_or_default();
                 let mut split_content = content.split(' ');
                 let command = split_content.next().unwrap_or_default();
-                let mut is_correct_format = false;
-
-                match command {
+                let price_correction_message = "Use the format 'price [search_term]'";
+                let correction_message = match command {
                     "price" => {
                         for item_name in split_content {
-                            is_correct_format = true;
-
                             self.send_price_info(&sender, &item_name.to_lowercase())?;
                         }
+
+                        None
                     }
                     "sort" => {
                         if self.is_user_admin(&sender)? {
-                            is_correct_format = true;
-
                             if let Some(sort_count) = split_content.next() {
                                 let sort_count = sort_count
                                     .parse::<u8>()
@@ -202,15 +199,22 @@ impl Bot {
                                 log::debug!("Sorting inventory");
                                 self.client.sort_inventory();
                             }
+
+                            None
+                        } else {
+                            Some(price_correction_message)
                         }
                     }
                     "admin_access" => {
                         if self.is_user_admin(&sender)? && !self.client.is_trading() {
                             log::debug!("Providing admin access");
 
-                            is_correct_format = true;
                             self.trade_mode = TradeMode::AdminAccess;
                             self.client.send_invite(sender, InviteKind::Trade);
+
+                            None
+                        } else {
+                            Some(price_correction_message)
                         }
                     }
                     "position" => {
@@ -226,15 +230,35 @@ impl Bot {
                                     z.parse::<f32>().map_err(|error| error.to_string())?,
                                 ];
 
-                                is_correct_format = true;
                                 self.position = position;
+
+                                None
+                            } else {
+                                Some("Use the format 'position [x] [y] [z]'.")
                             }
+                        } else {
+                            Some(price_correction_message)
                         }
                     }
-                    _ => {}
-                }
+                    "orientation" => {
+                        if self.is_user_admin(&sender)? {
+                            if let Some(orientation) = split_content.next() {
+                                self.orientation = orientation
+                                    .parse::<f32>()
+                                    .map_err(|error| error.to_string())?;
 
-                if !is_correct_format {
+                                None
+                            } else {
+                                Some("Use the format 'orientation [0-360]'")
+                            }
+                        } else {
+                            Some(price_correction_message)
+                        }
+                    }
+                    _ => Some(price_correction_message),
+                };
+
+                if let Some(message) = correction_message {
                     let player_name = self
                         .find_name(&sender)
                         .ok_or("Failed to find player name")?
@@ -242,10 +266,7 @@ impl Bot {
 
                     self.client.send_command(
                         "tell".to_string(),
-                        vec![
-                            player_name.clone(),
-                            format!("Use the format 'price [search_term]'."),
-                        ],
+                        vec![player_name.clone(), message.to_string()],
                     );
                 }
             }
@@ -624,27 +645,35 @@ impl Bot {
     }
 
     fn handle_position_and_orientation(&mut self) -> Result<(), String> {
-        let current_position = self.client.current::<Pos>();
+        if let Some(current_position) = self.client.current::<Pos>() {
+            let target_position = Pos(self.position.into());
 
-        if let Some(current_position) = current_position {
-            if current_position.0 == self.position.into() {
-                return Ok(());
+            if current_position != target_position {
+                let entity = self.client.entity();
+                let ecs = self.client.state_mut().ecs();
+                let mut position_state = ecs.write_storage::<Pos>();
+
+                position_state
+                    .insert(entity, target_position)
+                    .map_err(|error| error.to_string())?;
             }
         }
 
-        let entity = self.client.entity();
-        let ecs = self.client.state_mut().ecs();
-        let mut position_state = ecs.write_storage::<Pos>();
-        let mut orientation_state = ecs.write_storage::<Ori>();
-        let orientation = Ori::default()
-            .uprighted()
-            .rotated(Quaternion::rotation_z(self.orientation.to_radians()));
-        orientation_state
-            .insert(entity, orientation)
-            .map_err(|error| error.to_string())?;
-        position_state
-            .insert(entity, Pos(self.position.into()))
-            .map_err(|error| error.to_string())?;
+        if let Some(current_orientation) = self.client.current::<Ori>() {
+            let target_orientation = Ori::default()
+                .uprighted()
+                .rotated(Quaternion::rotation_z(self.orientation.to_radians()));
+
+            if current_orientation != target_orientation {
+                let entity = self.client.entity();
+                let ecs = self.client.state_mut().ecs();
+                let mut orientation_state = ecs.write_storage::<Ori>();
+
+                orientation_state
+                    .insert(entity, target_orientation)
+                    .map_err(|error| error.to_string())?;
+            }
+        }
 
         Ok(())
     }

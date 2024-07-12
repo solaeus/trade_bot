@@ -1,3 +1,5 @@
+#![feature(duration_constructors)]
+
 mod bot;
 
 use std::{collections::HashMap, env::var, fs::read_to_string};

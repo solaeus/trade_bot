@@ -15,10 +15,11 @@ pub struct Secrets {
 
 #[derive(Serialize, Deserialize)]
 struct Config {
-    pub buy_prices: HashMap<String, u32>,
-    pub sell_prices: HashMap<String, u32>,
     pub position: [f32; 3],
     pub orientation: f32,
+    pub announcement: String,
+    pub buy_prices: HashMap<String, u32>,
+    pub sell_prices: HashMap<String, u32>,
 }
 
 fn main() {
@@ -68,6 +69,7 @@ fn main() {
         sell_prices_with_full_id,
         config.position,
         config.orientation,
+        config.announcement,
     )
     .expect("Failed to create bot");
 

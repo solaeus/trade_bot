@@ -6,7 +6,7 @@ use std::{
 
 use tokio::runtime::Runtime;
 use vek::Quaternion;
-use veloren_client::{addr::ConnectionArgs, Client, Event as VelorenEvent, WorldExt};
+use veloren_client::{addr::ConnectionArgs, Client, Event as VelorenEvent, SiteInfoRich, WorldExt};
 use veloren_common::{
     clock::Clock,
     comp::{invite::InviteKind, item::ItemDefinitionIdOwned, ChatType, ControllerInputs, Ori, Pos},
@@ -28,6 +28,7 @@ pub struct Bot {
     position: [f32; 3],
     orientation: f32,
     admins: Vec<String>,
+    announcement: String,
 
     client: Client,
     clock: Clock,
@@ -36,7 +37,7 @@ pub struct Bot {
     sell_prices: BTreeMap<String, u32>,
     trade_mode: TradeMode,
 
-    last_action: Instant,
+    last_trade_action: Instant,
     last_announcement: Instant,
     last_ouch: Instant,
     sort_count: u8,
@@ -54,6 +55,7 @@ impl Bot {
         sell_prices: BTreeMap<String, u32>,
         position: [f32; 3],
         orientation: f32,
+        announcement: String,
     ) -> Result<Self, String> {
         log::info!("Connecting to veloren");
 
@@ -101,10 +103,11 @@ impl Bot {
             buy_prices,
             sell_prices,
             trade_mode: TradeMode::Trade,
-            last_action: now,
+            last_trade_action: now,
             last_announcement: now,
             last_ouch: now,
             sort_count: 0,
+            announcement,
         })
     }
 
@@ -119,7 +122,7 @@ impl Bot {
             self.handle_veloren_event(event)?;
         }
 
-        if self.last_action.elapsed() > Duration::from_millis(300) {
+        if self.last_trade_action.elapsed() > Duration::from_millis(300) {
             if self.client.is_dead() {
                 self.client.respawn();
             }
@@ -147,18 +150,10 @@ impl Bot {
                 self.client.accept_invite();
             }
 
-            self.last_action = Instant::now();
+            self.last_trade_action = Instant::now();
 
             if self.last_announcement.elapsed() > Duration::from_secs(1800) {
-                log::info!("Making an announcement");
-
-                self.client.send_command(
-                        "region".to_string(),
-                        vec![format!(
-                            "I'm a bot. You can trade with me or check prices: '/tell {} price [search_term]'.",
-                            self.username
-                        )],
-                    );
+                self.handle_announcement()?;
 
                 self.last_announcement = Instant::now();
             }
@@ -202,9 +197,7 @@ impl Bot {
 
                                 log::debug!("Sorting inventory {sort_count} times");
 
-                                self.client.sort_inventory();
-
-                                self.sort_count = sort_count.saturating_sub(1);
+                                self.sort_count = sort_count;
                             } else {
                                 log::debug!("Sorting inventory");
                                 self.client.sort_inventory();
@@ -309,6 +302,40 @@ impl Bot {
             }
             _ => (),
         }
+
+        Ok(())
+    }
+
+    fn handle_announcement(&mut self) -> Result<(), String> {
+        log::info!("Making an announcement");
+
+        let location = self
+            .client
+            .sites()
+            .into_iter()
+            .find_map(|(_, SiteInfoRich { site, .. })| {
+                let x_difference = self.position[0] - site.wpos[0] as f32;
+                let y_difference = self.position[1] - site.wpos[1] as f32;
+
+                if x_difference.abs() < 100.0 && y_difference.abs() < 100.0 {
+                    site.name.clone()
+                } else {
+                    None
+                }
+            })
+            .unwrap_or(format!("{:?}", self.position));
+
+        self.client.send_command(
+            "region".to_string(),
+            vec![format!(
+                "I'm a bot. You can trade with me or check prices: '/tell {} price [search_term]'.",
+                self.username
+            )],
+        );
+        self.client.send_command(
+            "world".to_string(),
+            vec![format!("{} at {location}.", self.announcement)],
+        );
 
         Ok(())
     }
@@ -601,6 +628,19 @@ impl Bot {
 
         if let Some(current_position) = current_position {
             if current_position.0 == self.position.into() {
+                for (_, SiteInfoRich { site, .. }) in self.client.sites() {
+                    let site_name = &site.name;
+                    let site_position = site.wpos;
+
+                    let x_difference = self.position[0] - site_position[0] as f32;
+                    let y_difference = self.position[1] - site_position[1] as f32;
+
+                    if x_difference.abs() < 100.0 && y_difference.abs() < 100.0 {
+                        println!("{current_position:?} {site_position}");
+                        println!("{site_name:?} {site_position}");
+                    }
+                }
+
                 return Ok(());
             }
         }

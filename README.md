@@ -36,7 +36,7 @@ You will also need a "config.toml" and it needs it be in a "config" directory th
 # config/config.toml
 position = [0, 0, 0] # Change these to the desired X, Y, Z coordinates
 orientation = 0 # 0 = North, 90 = West, 180 = South, 270 = East
-announcement = "Crabo loves cheese! I am" # The bot appends " at [location]." to each announcement.
+announcement = "I love cheese! I am at {location}." # Optional. Announcements are sent every 45 minutes. Use {location} to insert the bot's current location.
 
 [buy_prices]
 "food.cheese" = 50

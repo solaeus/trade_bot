@@ -39,7 +39,7 @@ pub struct Bot {
     position: [f32; 3],
     orientation: f32,
     admins: Vec<String>,
-    announcement: String,
+    announcement: Option<String>,
 
     client: Client,
     clock: Clock,
@@ -68,7 +68,7 @@ impl Bot {
         sell_prices: HashMap<String, u32>,
         position: [f32; 3],
         orientation: f32,
-        announcement: String,
+        announcement: Option<String>,
     ) -> Result<Self, String> {
         log::info!("Connecting to veloren");
 
@@ -127,8 +127,15 @@ impl Bot {
 
     /// Run the bot for a single tick. This should be called in a loop.
     ///
+    /// There are three timers in this function:
+    /// - The [Clock] runs the Veloren client. At **30 ticks per second** this timer is faster than
+    ///   the others so the bot can respond to events quickly.
+    /// - `last_trade_action` times the bot's behavior to compensate for latency, every **300ms**.
+    /// - `last_announcement` times the bot's announcements to **45 minutes** and is checked while
+    ///   processing trade actions.
+    ///
     /// This function should be modified with care. In addition to being the bot's main loop, it
-    /// also accepts incoming trade invites, which has a potential for error if the bot accepts an /// invite while in the wrong trade mode.
+    /// also accepts incoming trade invites, which has a potential for error if the bot accepts an /// invite while in the wrong trade mode. See the inline comments for more information.
     pub fn tick(&mut self) -> Result<(), String> {
         let veloren_events = self
             .client
@@ -140,18 +147,9 @@ impl Bot {
         }
 
         if self.last_trade_action.elapsed() > Duration::from_millis(300) {
-            if self.client.is_dead() {
-                self.client.respawn();
-            }
-
+            self.client.respawn();
             self.handle_position_and_orientation()?;
             self.handle_lantern();
-
-            if self.sort_count > 0 {
-                self.client.sort_inventory();
-
-                self.sort_count -= 1;
-            }
 
             if let Some((_, trade, _)) = self.client.pending_trade() {
                 match self.trade_mode {
@@ -163,13 +161,29 @@ impl Bot {
                     }
                     TradeMode::Trade => self.handle_trade(trade.clone())?,
                 }
-            } else if self.client.pending_invites().is_empty()
-                && self.trade_mode == TradeMode::Trade
+            // It should be enough to check the trade mode but the extra check for outgoing
+            // invites ensures that the bot doesn't accept an invite while in AdminAccess mode.
+            // This cannot happen because the bot doesn't send invites in Trade mode but the code
+            // is here to be extra safe for future refactoring.
+            } else if TradeMode::Trade == self.trade_mode
+                && self.client.pending_invites().is_empty()
             {
                 self.client.accept_invite();
             }
 
-            if self.last_announcement.elapsed() > Duration::from_mins(30) {
+            if self.sort_count > 0 {
+                self.client.sort_inventory();
+
+                self.sort_count -= 1;
+
+                if self.sort_count == 0 {
+                    log::info!("Sorted inventory, finished")
+                } else {
+                    log::info!("Sorted inventory, {} more times to go", self.sort_count);
+                }
+            }
+
+            if self.last_announcement.elapsed() > Duration::from_mins(45) {
                 self.handle_announcement()?;
 
                 self.last_announcement = Instant::now();
@@ -215,8 +229,9 @@ impl Bot {
 
                                 self.sort_count = sort_count;
                             } else {
-                                log::info!("Sorting inventory");
                                 self.client.sort_inventory();
+
+                                log::info!("Sorting inventory once");
                             }
 
                             None
@@ -296,7 +311,7 @@ impl Bot {
                 ..
             }) => {
                 if let Some(uid) = self.client.uid() {
-                    if uid == target && self.last_ouch.elapsed() > Duration::from_secs(1) {
+                    if uid == target && self.last_ouch.elapsed() > Duration::from_secs(2) {
                         self.client
                             .send_command("say".to_string(), vec!["Ouch!".to_string()]);
 
@@ -360,26 +375,10 @@ impl Bot {
 
     // Make the bot's trading and help accouncements
     //
-    // Currently, this will make two announcements: one in /region with basic usage instructions
-    // and one in /world with the [Bot::announcment] field followed by " at [location]."
+    // Currently, this can make two announcements: one in /region with basic usage instructions is // always made. If an announcement was provided when the bot was created, it will make it in
+    // /world followed by " at [location]."
     fn handle_announcement(&mut self) -> Result<(), String> {
         log::info!("Making an announcement");
-
-        let location = self
-            .client
-            .sites()
-            .into_iter()
-            .find_map(|(_, SiteInfoRich { site, .. })| {
-                let x_difference = self.position[0] - site.wpos[0] as f32;
-                let y_difference = self.position[1] - site.wpos[1] as f32;
-
-                if x_difference.abs() < 100.0 && y_difference.abs() < 100.0 {
-                    site.name.clone()
-                } else {
-                    None
-                }
-            })
-            .unwrap_or(format!("{:?}", self.position));
 
         self.client.send_command(
             "region".to_string(),
@@ -388,10 +387,28 @@ impl Bot {
                 self.username
             )],
         );
-        self.client.send_command(
-            "world".to_string(),
-            vec![format!("{} at {location}.", self.announcement)],
-        );
+
+        if let Some(announcement) = &self.announcement {
+            let location = self
+                .client
+                .sites()
+                .into_iter()
+                .find_map(|(_, SiteInfoRich { site, .. })| {
+                    let x_difference = self.position[0] - site.wpos[0] as f32;
+                    let y_difference = self.position[1] - site.wpos[1] as f32;
+
+                    if x_difference.abs() < 100.0 && y_difference.abs() < 100.0 {
+                        site.name.clone()
+                    } else {
+                        None
+                    }
+                })
+                .unwrap_or(format!("{:?}", self.position));
+            let interpolated_announcement = announcement.replace("{location}", &location);
+
+            self.client
+                .send_command("world".to_string(), vec![interpolated_announcement]);
+        }
 
         Ok(())
     }

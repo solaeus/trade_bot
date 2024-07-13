@@ -19,7 +19,7 @@ pub struct Secrets {
 struct Config {
     pub position: [f32; 3],
     pub orientation: f32,
-    pub announcement: String,
+    pub announcement: Option<String>,
     pub buy_prices: HashMap<String, u32>,
     pub sell_prices: HashMap<String, u32>,
 }

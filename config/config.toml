@@ -1,6 +1,5 @@
-position = [17626.0, 14960.0, 237.0]
-orientation = 90.0
-announcement = "Buying cheese and selling stuff"
+position = [17720.0, 14951.0, 237.0]
+orientation = 0
 
 [buy_prices]
 "food.cheese" = 50

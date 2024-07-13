@@ -170,9 +170,6 @@ impl Bot {
                     }
                     TradeMode::Trade => self.handle_trade(trade.clone())?,
                 }
-            // The extra check for outgoing invites ensures that the bot doesn't give admin access
-            // to a non-admin user. This cannot happen because the bot doesn't send invites in
-            // Trade mode but the code is here to be extra safe for future refactoring.
             } else if self.client.pending_invites().is_empty() {
                 match self.trade_mode {
                     TradeMode::AdminAccess => {

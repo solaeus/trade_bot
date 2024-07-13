@@ -17,12 +17,8 @@ use tokio::runtime::Runtime;
 use vek::Quaternion;
 use veloren_client::{addr::ConnectionArgs, Client, Event as VelorenEvent, SiteInfoRich, WorldExt};
 use veloren_common::{
-    character::Character,
     clock::Clock,
-    comp::{
-        invite::InviteKind, item::ItemDefinitionIdOwned, CharacterState, ChatType,
-        ControllerInputs, Health, Ori, Pos,
-    },
+    comp::{invite::InviteKind, item::ItemDefinitionIdOwned, ChatType, ControllerInputs, Ori, Pos},
     outcome::Outcome,
     time::DayPeriod,
     trade::{PendingTrade, TradeAction, TradeResult},
@@ -174,14 +170,18 @@ impl Bot {
                     }
                     TradeMode::Trade => self.handle_trade(trade.clone())?,
                 }
-            // It should be enough to check the trade mode but the extra check for outgoing
-            // invites ensures that the bot doesn't accept an invite while in AdminAccess mode.
-            // This cannot happen because the bot doesn't send invites in Trade mode but the code
-            // is here to be extra safe for future refactoring.
-            } else if TradeMode::Trade == self.trade_mode
-                && self.client.pending_invites().is_empty()
-            {
-                self.client.accept_invite();
+            // The extra check for outgoing invites ensures that the bot doesn't give admin access
+            // to a non-admin user. This cannot happen because the bot doesn't send invites in
+            // Trade mode but the code is here to be extra safe for future refactoring.
+            } else if self.client.pending_invites().is_empty() {
+                match self.trade_mode {
+                    TradeMode::AdminAccess => {
+                        self.trade_mode = TradeMode::Trade;
+                    }
+                    TradeMode::Trade => {
+                        self.client.accept_invite();
+                    }
+                }
             }
 
             if self.sort_count > 0 {

@@ -34,7 +34,6 @@ fn main() {
 
         toml::from_str::<Secrets>(&file_content).expect("Failed to parse secrets")
     };
-
     let config = {
         let config_path =
             var("CONFIG").expect("Provide a CONFIG variable specifying the config file");
@@ -42,7 +41,6 @@ fn main() {
 
         toml::from_str::<Config>(&file_content).expect("Failed to parse config")
     };
-
     let buy_prices_with_full_id = config
         .buy_prices
         .into_iter()
@@ -61,7 +59,6 @@ fn main() {
             (item_id, price)
         })
         .collect();
-
     let mut bot = Bot::new(
         secrets.username,
         &secrets.password,

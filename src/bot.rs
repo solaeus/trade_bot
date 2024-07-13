@@ -1,5 +1,5 @@
 use std::{
-    collections::BTreeMap,
+    collections::HashMap,
     sync::Arc,
     time::{Duration, Instant},
 };
@@ -33,8 +33,8 @@ pub struct Bot {
     client: Client,
     clock: Clock,
 
-    buy_prices: BTreeMap<String, u32>,
-    sell_prices: BTreeMap<String, u32>,
+    buy_prices: HashMap<String, u32>,
+    sell_prices: HashMap<String, u32>,
     trade_mode: TradeMode,
 
     last_trade_action: Instant,
@@ -46,13 +46,14 @@ pub struct Bot {
 impl Bot {
     /// Connect to the official veloren server, select the specified character
     /// and return a Bot instance ready to run.
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         username: String,
         password: &str,
         character: &str,
         admins: Vec<String>,
-        buy_prices: BTreeMap<String, u32>,
-        sell_prices: BTreeMap<String, u32>,
+        buy_prices: HashMap<String, u32>,
+        sell_prices: HashMap<String, u32>,
         position: [f32; 3],
         orientation: f32,
         announcement: String,
@@ -78,10 +79,10 @@ impl Bot {
             .characters
             .iter()
             .find(|character_item| character_item.character.alias == character)
-            .expect(&format!("No character named {character}"))
+            .ok_or_else(|| format!("No character named {character}"))?
             .character
             .id
-            .expect("Failed to get character ID");
+            .ok_or("Failed to get character ID")?;
 
         client.request_character(
             character_id,

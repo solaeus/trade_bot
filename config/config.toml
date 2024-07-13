@@ -28,7 +28,7 @@ announcement = "Buying cheese and selling stuff"
 # Crafting
 "crafting_ing.alkahest" = 6_000
 "crafting_ing.brinestone" = 2_000
-"crafting_ing.coral_brach" = 1_000
+"crafting_ing.coral_branch" = 1_000
 "crafting_ing.hide.dragon_scale" = 5_000
 "crafting_ing.dwarven_battery" = 40_000
 "log.eldwood" = 3_000
@@ -42,6 +42,7 @@ announcement = "Buying cheese and selling stuff"
 "glider.skullgrin" = 20_000
 
 # Recipes
+"recipes.armor.brinestone" = 8_000
 "recipes.equipment.advanced" = 8_000
 "recipes.unique.mindflayer_spellbag" = 10_000
 "recipes.unique.abyssal_gorget" = 6_000

@@ -207,11 +207,11 @@ impl Bot {
                                     .parse::<u8>()
                                     .map_err(|error| error.to_string())?;
 
-                                log::debug!("Sorting inventory {sort_count} times");
+                                log::info!("Sorting inventory {sort_count} times");
 
                                 self.sort_count = sort_count;
                             } else {
-                                log::debug!("Sorting inventory");
+                                log::info!("Sorting inventory");
                                 self.client.sort_inventory();
                             }
 
@@ -222,7 +222,7 @@ impl Bot {
                     }
                     "admin_access" => {
                         if self.is_user_admin(&sender)? && !self.client.is_trading() {
-                            log::debug!("Providing admin access");
+                            log::info!("Providing admin access");
 
                             self.trade_mode = TradeMode::AdminAccess;
                             self.client.send_invite(sender, InviteKind::Trade);
@@ -639,7 +639,7 @@ impl Bot {
             if item_id.contains(search_term) {
                 let short_id = item_id.splitn(3, '.').last().unwrap_or_default();
 
-                log::debug!("Sending price info on {short_id} to {player_name}");
+                log::info!("Sending price info on {short_id} to {player_name}");
 
                 self.client.send_command(
                     "tell".to_string(),
@@ -657,7 +657,7 @@ impl Bot {
             if item_id.contains(search_term) {
                 let short_id = item_id.splitn(3, '.').last().unwrap_or_default();
 
-                log::debug!("Sending price info on {short_id} to {player_name}");
+                log::info!("Sending price info on {short_id} to {player_name}");
 
                 self.client.send_command(
                     "tell".to_string(),
@@ -672,7 +672,7 @@ impl Bot {
         }
 
         if !found {
-            log::debug!("Found no price for \"{search_term}\" for {player_name}");
+            log::info!("Found no price for \"{search_term}\" for {player_name}");
 
             self.client.send_command(
                 "tell".to_string(),

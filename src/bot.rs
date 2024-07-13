@@ -48,6 +48,7 @@ pub struct Bot {
     sell_prices: HashMap<String, u32>,
     trade_mode: TradeMode,
 
+    previous_offer: Option<(HashMap<String, u32>, HashMap<String, u32>)>,
     last_trade_action: Instant,
     last_announcement: Instant,
     last_ouch: Instant,
@@ -115,6 +116,7 @@ impl Bot {
             buy_prices,
             sell_prices,
             trade_mode: TradeMode::Trade,
+            previous_offer: None,
             last_trade_action: now,
             last_announcement: now,
             last_ouch: now,
@@ -161,7 +163,9 @@ impl Bot {
                     }
                     TradeMode::Trade => self.handle_trade(trade.clone())?,
                 }
-            } else if self.client.pending_invites().is_empty() {
+            } else if self.client.pending_invites().is_empty()
+                && self.trade_mode == TradeMode::Trade
+            {
                 self.client.accept_invite();
             }
 
@@ -224,7 +228,9 @@ impl Bot {
                         if self.is_user_admin(&sender)? && !self.client.is_trading() {
                             log::info!("Providing admin access");
 
+                            self.previous_offer = None;
                             self.trade_mode = TradeMode::AdminAccess;
+
                             self.client.send_invite(sender, InviteKind::Trade);
 
                             None
@@ -325,11 +331,9 @@ impl Bot {
 
                 match result {
                     TradeResult::Completed => {
-                        log::info!(
-                            "Trade with {their_name}: {:?} {:?}",
-                            trade.offers[0],
-                            trade.offers[1]
-                        );
+                        if let Some(offer) = &self.previous_offer {
+                            log::info!("Trade with {their_name}: {offer:?}",);
+                        }
 
                         self.client.send_command(
                             "say".to_string(),
@@ -343,6 +347,8 @@ impl Bot {
                 }
 
                 if let TradeMode::AdminAccess = self.trade_mode {
+                    log::info!("End of admin access");
+
                     self.trade_mode = TradeMode::Trade;
                 }
             }
@@ -542,11 +548,27 @@ impl Bot {
             }
         }
 
-        drop(inventories);
+        let item_offers = {
+            let mut their_items = HashMap::with_capacity(their_offer.len());
 
-        if their_offered_items_value == 0 && my_offered_items_value == 0 {
-            return Ok(());
-        }
+            for (slot_id, quantity) in their_offer {
+                if let Some(item) = their_inventory.get(*slot_id) {
+                    their_items.insert(item.persistence_item_id(), *quantity);
+                }
+            }
+
+            let mut my_items = HashMap::with_capacity(my_offer.len());
+
+            for (slot_id, quantity) in my_offer {
+                if let Some(item) = my_inventory.get(*slot_id) {
+                    my_items.insert(item.persistence_item_id(), *quantity);
+                }
+            }
+
+            (my_items, their_items)
+        };
+
+        drop(inventories);
 
         if !my_items_to_remove.is_empty() {
             for (item, quantity) in my_items_to_remove {
@@ -576,11 +598,13 @@ impl Bot {
 
         // If the trade is balanced
         if difference == 0 {
+            self.previous_offer = Some(item_offers);
+
             // Accept
             self.client
                 .perform_trade_action(TradeAction::Accept(trade.phase));
         // If they are offering more
-        } else if difference.is_positive() {
+        } else if difference > 0 {
             // If they are offering coins
             if their_offered_coin_amount > 0 {
                 if let Some(their_coins) = get_their_coins {
@@ -601,7 +625,7 @@ impl Bot {
                 });
             }
         // If I am offering more
-        } else if difference.is_negative() {
+        } else if difference < 0 {
             // If I am offering coins
             if my_offered_coin_amount > 0 {
                 if let Some(my_coins) = get_my_coins {
@@ -763,6 +787,7 @@ impl Bot {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum TradeMode {
     AdminAccess,
     Trade,

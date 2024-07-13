@@ -1,3 +1,12 @@
+/**
+A bot that buys, sells and trades with players.
+
+This bot is designed to run on the official Veloren server. It will connect to the server, select
+a character, and then attempt to buy, sell, and trade with other players. The bot will also
+announce its presence and respond to chat messages.
+
+See [main.rs] for an example of how to run this bot.
+**/
 use std::{
     collections::HashMap,
     sync::Arc,
@@ -21,8 +30,10 @@ use veloren_common_net::sync::WorldSyncExt;
 
 const COINS: &str = "common.items.utility.coins";
 
-/// A Bot instance represents an active connection to the server and it will
-/// attempt to run every time the `tick` function is called.
+/// An active connection to the Veloren server that will attempt to run every time the `tick`
+/// function is called.
+///
+/// See the [module-level documentation](index.html) for more information.
 pub struct Bot {
     username: String,
     position: [f32; 3],
@@ -112,7 +123,10 @@ impl Bot {
         })
     }
 
-    // Run the bot for a single tick. This should be called in a loop.
+    /// Run the bot for a single tick. This should be called in a loop.
+    ///
+    /// This function should be modified with care. In addition to being the bot's main loop, it
+    /// also accepts incoming trade invites, which has a potential for error if the bot accepts an /// invite while in the wrong trade mode.
     pub fn tick(&mut self) -> Result<(), String> {
         let veloren_events = self
             .client
@@ -309,17 +323,27 @@ impl Bot {
                 let their_uid = trade.parties[their_party];
                 let their_name = self.find_name(&their_uid).ok_or("Failed to find name")?;
 
-                log::info!("End of trade with {their_name}: {result:?}");
+                match result {
+                    TradeResult::Completed => {
+                        log::info!(
+                            "Trade with {their_name}: {:?} {:?}",
+                            trade.offers[0],
+                            trade.offers[1]
+                        );
+
+                        self.client.send_command(
+                            "say".to_string(),
+                            vec!["Thank you for trading with me!".to_string()],
+                        );
+                    }
+                    TradeResult::Declined => log::info!("Trade with {their_name} declined"),
+                    TradeResult::NotEnoughSpace => {
+                        log::info!("Trade with {their_name} failed: not enough space")
+                    }
+                }
 
                 if let TradeMode::AdminAccess = self.trade_mode {
                     self.trade_mode = TradeMode::Trade;
-                }
-
-                if let TradeResult::Completed = result {
-                    self.client.send_command(
-                        "say".to_string(),
-                        vec!["Thank you for trading with me!".to_string()],
-                    );
                 }
             }
             _ => (),
@@ -328,6 +352,10 @@ impl Bot {
         Ok(())
     }
 
+    // Make the bot's trading and help accouncements
+    //
+    // Currently, this will make two announcements: one in /region with basic usage instructions
+    // and one in /world with the [Bot::announcment] field followed by " at [location]."
     fn handle_announcement(&mut self) -> Result<(), String> {
         log::info!("Making an announcement");
 
@@ -362,6 +390,7 @@ impl Bot {
         Ok(())
     }
 
+    /// Use the lantern at night and put it away during the day.
     fn handle_lantern(&mut self) {
         let day_period = self.client.state().get_day_period();
 
@@ -379,6 +408,23 @@ impl Bot {
         }
     }
 
+    /// Manage an active trade.
+    ///
+    /// This is a rather complex function that should be modified with care. The bot uses its buy
+    /// and sell prices to determine an item's value and determines total value of each side of
+    /// the trade. Coins are hard-coded to have a value of 1 each.
+    ///
+    /// The bot's trading logic is as follows:
+    /// 1. If the trade is empty, do nothing.
+    /// 2. If my offer includes items I am not selling, remove those items unless they are coins.
+    /// 3. If their offer includes items I am not buying, remove those items unless they are coins.
+    /// 4. If the trade is balanced, accept it.
+    /// 5. If the total value of their offer is greater than the total value of my offer:
+    ///     1. If they are offering coins, remove some to balance.
+    ///     2. If they are not offering coins, add mine to balance.
+    /// 6. If the total value of my offer is greater than the total value of their offer:
+    ///     1. If I am offering coins, remove some to balance.
+    ///     2. If I am not offering coins, add theirs to balance.
     fn handle_trade(&mut self, trade: PendingTrade) -> Result<(), String> {
         if trade.is_empty_trade() {
             return Ok(());
@@ -580,7 +626,9 @@ impl Bot {
         Ok(())
     }
 
-    fn send_price_info(&mut self, target: &Uid, item_name: &str) -> Result<(), String> {
+    /// Attempts to find an item based on a search term and sends the price info to the target
+    /// player.
+    fn send_price_info(&mut self, target: &Uid, search_term: &str) -> Result<(), String> {
         let player_name = self
             .find_name(target)
             .ok_or("Failed to find player name")?
@@ -588,7 +636,7 @@ impl Bot {
         let mut found = false;
 
         for (item_id, price) in &self.buy_prices {
-            if item_id.contains(item_name) {
+            if item_id.contains(search_term) {
                 let short_id = item_id.splitn(3, '.').last().unwrap_or_default();
 
                 log::debug!("Sending price info on {short_id} to {player_name}");
@@ -606,7 +654,7 @@ impl Bot {
         }
 
         for (item_id, price) in &self.sell_prices {
-            if item_id.contains(item_name) {
+            if item_id.contains(search_term) {
                 let short_id = item_id.splitn(3, '.').last().unwrap_or_default();
 
                 log::debug!("Sending price info on {short_id} to {player_name}");
@@ -624,7 +672,7 @@ impl Bot {
         }
 
         if !found {
-            log::debug!("Found no price for \"{item_name}\" for {player_name}");
+            log::debug!("Found no price for \"{search_term}\" for {player_name}");
 
             self.client.send_command(
                 "tell".to_string(),
@@ -635,6 +683,7 @@ impl Bot {
         Ok(())
     }
 
+    /// Determines if the Uid belonds to an admin.
     fn is_user_admin(&self, uid: &Uid) -> Result<bool, String> {
         let sender_uuid = self
             .find_uuid(uid)
@@ -645,6 +694,7 @@ impl Bot {
         Ok(self.admins.contains(sender_name) || self.admins.contains(&sender_uuid))
     }
 
+    /// Moves the character to the configured position and orientation.
     fn handle_position_and_orientation(&mut self) -> Result<(), String> {
         if let Some(current_position) = self.client.current::<Pos>() {
             let target_position = Pos(self.position.into());
@@ -679,6 +729,7 @@ impl Bot {
         Ok(())
     }
 
+    /// Finds the name of a player by their Uid.
     fn find_name<'a>(&'a self, uid: &Uid) -> Option<&'a String> {
         self.client.player_list().iter().find_map(|(id, info)| {
             if id == uid {
@@ -689,6 +740,7 @@ impl Bot {
         })
     }
 
+    /// Finds the Uuid of a player by their Uid.
     fn find_uuid(&self, target: &Uid) -> Option<Uuid> {
         self.client.player_list().iter().find_map(|(uid, info)| {
             if uid == target {
@@ -699,6 +751,7 @@ impl Bot {
         })
     }
 
+    /// Finds the Uid of a player by their name.
     fn _find_uid<'a>(&'a self, name: &str) -> Option<&'a Uid> {
         self.client.player_list().iter().find_map(|(id, info)| {
             if info.player_alias == name {

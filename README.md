@@ -78,7 +78,7 @@ Then follow the [above](#running) steps with the tag "trade_bot" instead of "git
 The bot is able to respond to the following commands, which must be sent via "/tell".
 
 - `price [search term]`: Returns the buy/sell offers of any item whose item definition ID contains the search term.
-- `admin_access`: Admin-only, prompts the bot to send a trade invite, after which it will give away and accept any items until the trade ends.
+- `admin_access`: Admin-only, prompts the bot to send a trade invite to the sender, after which it will give away and accept any items until the trade ends.
 - `sort [count (optional)]`: Admin-only, sorts the inventory once or the given number of times.
 - `position [x] [y] [z]`: Admin-only, sets the bot's desired position where it will try to stand (must be close to the character)
 - `orientation [0-360]`: Admin-only, sets the bot's desired orientation (or facing direction)

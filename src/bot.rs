@@ -448,6 +448,7 @@ impl Bot {
     /// the trade. Coins are hard-coded to have a value of 1 each.
     ///
     /// The bot's trading logic is as follows:
+    ///
     /// 1. If the trade is empty, do nothing.
     /// 2. If my offer includes items I am not selling, remove those items unless they are coins.
     /// 3. If their offer includes items I am not buying, remove those items unless they are coins.
@@ -458,6 +459,7 @@ impl Bot {
     /// 6. If the total value of my offer is greater than the total value of their offer:
     ///     1. If I am offering coins, remove some to balance.
     ///     2. If I am not offering coins, add theirs to balance.
+    #[allow(clippy::comparison_chain)]
     fn handle_trade(&mut self, trade: PendingTrade) -> Result<(), String> {
         if trade.is_empty_trade() {
             return Ok(());

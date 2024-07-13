@@ -54,7 +54,7 @@ podman run \
     --detach \
     --name trade_bot \
     --secret secrets.toml \
-    -v ./config/:/root/config/ \
+    --volume ./config/:/root/config/ \
     --env CONFIG=/root/config/config.toml \
     --env SECRETS=/run/secrets/secrets.toml \
     --env RUST_LOG=trade_bot \

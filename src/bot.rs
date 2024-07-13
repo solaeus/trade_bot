@@ -17,8 +17,12 @@ use tokio::runtime::Runtime;
 use vek::Quaternion;
 use veloren_client::{addr::ConnectionArgs, Client, Event as VelorenEvent, SiteInfoRich, WorldExt};
 use veloren_common::{
+    character::Character,
     clock::Clock,
-    comp::{invite::InviteKind, item::ItemDefinitionIdOwned, ChatType, ControllerInputs, Ori, Pos},
+    comp::{
+        invite::InviteKind, item::ItemDefinitionIdOwned, CharacterState, ChatType,
+        ControllerInputs, Health, Ori, Pos,
+    },
     outcome::Outcome,
     time::DayPeriod,
     trade::{PendingTrade, TradeAction, TradeResult},
@@ -96,13 +100,22 @@ impl Bot {
             .id
             .ok_or("Failed to get character ID")?;
 
-        client.request_character(
-            character_id,
-            ViewDistances {
-                terrain: 4,
-                entity: 4,
-            },
-        );
+        // This loop waits and retries requesting the character in the case that the character has
+        // logged out to recently.
+        while client.position().is_none() {
+            client.request_character(
+                character_id,
+                ViewDistances {
+                    terrain: 4,
+                    entity: 4,
+                },
+            );
+
+            client
+                .tick(ControllerInputs::default(), clock.dt())
+                .map_err(|error| format!("{error:?}"))?;
+            clock.tick();
+        }
 
         let now = Instant::now();
 

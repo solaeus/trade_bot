@@ -144,7 +144,7 @@ impl Bot {
     ///   processing trade actions.
     ///
     /// This function should be modified with care. In addition to being the bot's main loop, it
-    /// also accepts incoming trade invites, which has a potential for error if the bot accepts an /// invite while in the wrong trade mode. See the inline comments for more information.
+    /// also accepts incoming trade invites, which has a potential for error if the bot accepts an /// invite while in the wrong trade mode.
     pub fn tick(&mut self) -> Result<(), String> {
         let veloren_events = self
             .client
@@ -207,7 +207,7 @@ impl Bot {
         Ok(())
     }
 
-    // Consume and manage a client-side Veloren event.
+    /// Consume and manage a client-side Veloren event.
     fn handle_veloren_event(&mut self, event: VelorenEvent) -> Result<(), String> {
         match event {
             VelorenEvent::Chat(message) => {
@@ -383,10 +383,11 @@ impl Bot {
         Ok(())
     }
 
-    // Make the bot's trading and help accouncements
-    //
-    // Currently, this can make two announcements: one in /region with basic usage instructions is // always made. If an announcement was provided when the bot was created, it will make it in
-    // /world followed by " at [location]."
+    /// Make the bot's trading and help accouncements
+    ///
+    /// Currently, this can make two announcements: one in /region with basic usage instructions
+    /// is always made. If an announcement was provided when the bot was created, it will make it
+    /// in /world.
     fn handle_announcement(&mut self) -> Result<(), String> {
         log::info!("Making an announcement");
 

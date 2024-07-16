@@ -10,8 +10,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 struct Config {
-    pub position: [f32; 3],
-    pub orientation: f32,
+    pub game_server: Option<String>,
+    pub auth_server: Option<String>,
+    pub position: Option<[f32; 3]>,
+    pub orientation: Option<f32>,
     pub announcement: Option<String>,
     pub buy_prices: HashMap<String, u32>,
     pub sell_prices: HashMap<String, u32>,

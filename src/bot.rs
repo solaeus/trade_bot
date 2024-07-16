@@ -15,7 +15,7 @@ use std::{
 
 use hashbrown::HashMap;
 use tokio::runtime::Runtime;
-use vek::Quaternion;
+use vek::{Quaternion, Vec3};
 use veloren_client::{addr::ConnectionArgs, Client, Event as VelorenEvent, SiteInfoRich, WorldExt};
 use veloren_client_i18n::LocalizationHandle;
 use veloren_common::{
@@ -44,8 +44,8 @@ const COINS: &str = "common.items.utility.coins";
 /// See the [module-level documentation](index.html) for more information.
 pub struct Bot {
     username: String,
-    position: [f32; 3],
-    orientation: f32,
+    position: Pos,
+    orientation: Ori,
     admins: Vec<String>,
     announcement: Option<String>,
 
@@ -78,8 +78,8 @@ impl Bot {
         admins: Vec<String>,
         buy_prices: HashMap<String, u32>,
         sell_prices: HashMap<String, u32>,
-        position: [f32; 3],
-        orientation: f32,
+        position: Option<[f32; 3]>,
+        orientation: Option<f32>,
         announcement: Option<String>,
     ) -> Result<Self, String> {
         log::info!("Connecting to veloren");
@@ -125,6 +125,19 @@ impl Bot {
             clock.tick();
         }
 
+        let position = if let Some(coords) = position {
+            Pos([coords[0], coords[1], coords[2]].into())
+        } else {
+            client
+                .position()
+                .map(|coords| Pos(coords))
+                .ok_or("Failed to get position")?
+        };
+        let orientation = if let Some(orientation) = orientation {
+            Ori::new(Quaternion::rotation_z(orientation.to_radians()))
+        } else {
+            client.current::<Ori>().ok_or("Failed to get orientation")?
+        };
         let now = Instant::now();
 
         Ok(Bot {
@@ -267,10 +280,13 @@ impl Bot {
                     }
                     "ori" => {
                         if self.is_user_admin(&sender)? {
-                            if let Some(orientation) = split_content.next() {
-                                self.orientation = orientation
+                            if let Some(new_rotation) = split_content.next() {
+                                let new_rotation = new_rotation
                                     .parse::<f32>()
                                     .map_err(|error| error.to_string())?;
+
+                                self.orientation =
+                                    Ori::new(Quaternion::rotation_z(new_rotation.to_radians()));
 
                                 None
                             } else {
@@ -294,13 +310,11 @@ impl Bot {
                                 split_content.next(),
                                 split_content.next(),
                             ) {
-                                let position = [
+                                self.position = Pos(Vec3::new(
                                     x.parse::<f32>().map_err(|error| error.to_string())?,
                                     y.parse::<f32>().map_err(|error| error.to_string())?,
                                     z.parse::<f32>().map_err(|error| error.to_string())?,
-                                ];
-
-                                self.position = position;
+                                ));
 
                                 None
                             } else {
@@ -438,8 +452,8 @@ impl Bot {
                 .sites()
                 .into_iter()
                 .find_map(|(_, SiteInfoRich { site, .. })| {
-                    let x_difference = self.position[0] - site.wpos[0] as f32;
-                    let y_difference = self.position[1] - site.wpos[1] as f32;
+                    let x_difference = self.position.0[0] - site.wpos[0] as f32;
+                    let y_difference = self.position.0[1] - site.wpos[1] as f32;
 
                     if x_difference.abs() < 100.0 && y_difference.abs() < 100.0 {
                         site.name.clone()
@@ -824,31 +838,25 @@ impl Bot {
     /// Moves the character to the configured position and orientation.
     fn handle_position_and_orientation(&mut self) -> Result<(), String> {
         if let Some(current_position) = self.client.current::<Pos>() {
-            let target_position = Pos(self.position.into());
-
-            if current_position != target_position {
+            if current_position != self.position {
                 let entity = self.client.entity();
                 let ecs = self.client.state_mut().ecs();
                 let mut position_state = ecs.write_storage::<Pos>();
 
                 position_state
-                    .insert(entity, target_position)
+                    .insert(entity, self.position)
                     .map_err(|error| error.to_string())?;
             }
         }
 
         if let Some(current_orientation) = self.client.current::<Ori>() {
-            let target_orientation = Ori::default()
-                .uprighted()
-                .rotated(Quaternion::rotation_z(self.orientation.to_radians()));
-
-            if current_orientation != target_orientation {
+            if current_orientation != self.orientation {
                 let entity = self.client.entity();
                 let ecs = self.client.state_mut().ecs();
                 let mut orientation_state = ecs.write_storage::<Ori>();
 
                 orientation_state
-                    .insert(entity, target_orientation)
+                    .insert(entity, self.orientation)
                     .map_err(|error| error.to_string())?;
             }
         }

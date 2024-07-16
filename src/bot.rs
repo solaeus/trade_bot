@@ -443,25 +443,30 @@ impl Bot {
         );
 
         if let Some(announcement) = &self.announcement {
-            let location = self
-                .client
-                .sites()
-                .into_iter()
-                .find_map(|(_, SiteInfoRich { site, .. })| {
-                    let x_difference = self.position.0[0] - site.wpos[0] as f32;
-                    let y_difference = self.position.0[1] - site.wpos[1] as f32;
+            let announcement = if announcement.contains("{location}") {
+                let location = self
+                    .client
+                    .sites()
+                    .into_iter()
+                    .find_map(|(_, SiteInfoRich { site, .. })| {
+                        let x_difference = self.position.0[0] - site.wpos[0] as f32;
+                        let y_difference = self.position.0[1] - site.wpos[1] as f32;
 
-                    if x_difference.abs() < 100.0 && y_difference.abs() < 100.0 {
-                        site.name.clone()
-                    } else {
-                        None
-                    }
-                })
-                .unwrap_or(format!("{:?}", self.position));
-            let interpolated_announcement = announcement.replace("{location}", &location);
+                        if x_difference.abs() < 100.0 && y_difference.abs() < 100.0 {
+                            site.name.clone()
+                        } else {
+                            None
+                        }
+                    })
+                    .unwrap_or(format!("{:?}", self.position));
+
+                announcement.replace("{location}", &location)
+            } else {
+                announcement.clone()
+            };
 
             self.client
-                .send_command("world".to_string(), vec![interpolated_announcement]);
+                .send_command("world".to_string(), vec![announcement]);
         }
 
         Ok(())

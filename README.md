@@ -15,7 +15,7 @@ you are familiar with Rust.
   intended to be a fun addition to the game that can help players trade items with each other.
 - This project may have bugs. You are encouraged to report them to the author but the author takes
   no responsibility for any lost items. **No such incidents have been reported so far.**
-- This program **handles your password securely** and does nothing with it expect connecting to the
+- This program **handles your password securely** and does nothing with it except connecting to the
   veloren server during launch. However, third-party video game software is often infected with
   malware. You should **review the source code** or ask someone you trust to do so for you.
 - You are welcome to make changes to the code or fork the project. The author is open to

@@ -335,7 +335,7 @@ impl Bot {
 
                 if let Some(message) = correction_message {
                     let player_name = self
-                        .find_name(&sender)
+                        .find_player_alias(&sender)
                         .ok_or("Failed to find player name")?
                         .to_string();
 
@@ -382,7 +382,7 @@ impl Bot {
                 let their_party = if my_party == 0 { 1 } else { 0 };
                 let their_uid = trade.parties[their_party];
                 let their_name = self
-                    .find_name(&their_uid)
+                    .find_player_alias(&their_uid)
                     .ok_or("Failed to find name")?
                     .clone();
 
@@ -731,20 +731,13 @@ impl Bot {
     /// player.
     fn send_price_info(&mut self, target: &Uid, search_term: &str) -> Result<(), String> {
         let player_name = self
-            .find_name(target)
+            .find_player_alias(target)
             .ok_or("Failed to find player name")?
             .to_string();
         let mut found = false;
 
         for (item_id, price) in &self.buy_prices {
-            let item = Item::new_from_item_definition_id(
-                ItemDefinitionId::Simple(Cow::Borrowed(item_id)),
-                &self.ability_map,
-                &self.material_manifest,
-            )
-            .map_err(|error| error.to_string())?;
-            let (item_name_i18n_id, _) = item.i18n(&self.item_i18n);
-            let item_name = self.localization.read().get_content(&item_name_i18n_id);
+            let item_name = self.get_item_name(item_id);
 
             if item_name.contains(search_term) {
                 log::info!("Sending price info on {item_name} to {player_name}");
@@ -780,14 +773,7 @@ impl Bot {
         }
 
         for (item_id, price) in &self.sell_prices {
-            let item = Item::new_from_item_definition_id(
-                ItemDefinitionId::Simple(Cow::Borrowed(item_id)),
-                &self.ability_map,
-                &self.material_manifest,
-            )
-            .map_err(|error| error.to_string())?;
-            let (item_name_i18n_id, _) = item.i18n(&self.item_i18n);
-            let item_name = self.localization.read().get_content(&item_name_i18n_id);
+            let item_name = self.get_item_name(item_id);
 
             if item_name.contains(search_term) {
                 log::info!("Sending price info on {item_name} to {player_name}");
@@ -834,13 +820,13 @@ impl Bot {
         Ok(())
     }
 
-    /// Determines if the Uid belonds to an admin.
+    /// Determines if the Uid belongs to an admin.
     fn is_user_admin(&self, uid: &Uid) -> Result<bool, String> {
         let sender_uuid = self
             .find_uuid(uid)
             .ok_or("Failed to find uuid")?
             .to_string();
-        let sender_name = self.find_name(uid).ok_or("Failed to find name")?;
+        let sender_name = self.find_player_alias(uid).ok_or("Failed to find name")?;
 
         Ok(self.admins.contains(sender_name) || self.admins.contains(&sender_uuid))
     }
@@ -880,8 +866,21 @@ impl Bot {
         Ok(())
     }
 
+    /// Gets the name of an item from its item definition id.
+    fn get_item_name(&self, item: &str) -> String {
+        let item = Item::new_from_item_definition_id(
+            ItemDefinitionId::Simple(Cow::Borrowed(item)),
+            &self.ability_map,
+            &self.material_manifest,
+        )
+        .unwrap();
+        let (item_name_i18n_id, _) = item.i18n(&self.item_i18n);
+
+        self.localization.read().get_content(&item_name_i18n_id)
+    }
+
     /// Finds the name of a player by their Uid.
-    fn find_name<'a>(&'a self, uid: &Uid) -> Option<&'a String> {
+    fn find_player_alias<'a>(&'a self, uid: &Uid) -> Option<&'a String> {
         self.client.player_list().iter().find_map(|(id, info)| {
             if id == uid {
                 return Some(&info.player_alias);

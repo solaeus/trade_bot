@@ -1,12 +1,6 @@
-/**
-A bot that buys, sells and trades with players.
-
-This bot is designed to run on the official Veloren server. It will connect to the server, select
-a character, and then attempt to buy, sell, and trade with other players. The bot will also
-announce its presence and respond to chat messages.
-
-See [main.rs] for an example of how to run this bot.
-**/
+/// A bot that buys, sells and trades with players.
+///
+/// See [main.rs] for an example of how to run this bot.
 use std::{
     borrow::Cow,
     sync::Arc,
@@ -128,7 +122,7 @@ impl Bot {
         }
 
         let position = if let Some(coords) = position {
-            Pos([coords[0], coords[1], coords[2]].into())
+            Pos(coords.into())
         } else {
             client
                 .position()

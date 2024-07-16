@@ -136,3 +136,7 @@ podman build . -t trade_bot
 
 Then follow the [above](#running) steps with the tag "trade_bot" instead of
 "git.jeffa.io/jeff/trade_bot".
+
+## License
+
+This project is licensed under the GPL-3.0 license. See the [LICENSE](LICENSE) file for details.

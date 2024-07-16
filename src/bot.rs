@@ -16,15 +16,9 @@ use std::{
 use tokio::runtime::Runtime;
 use vek::Quaternion;
 use veloren_client::{addr::ConnectionArgs, Client, Event as VelorenEvent, SiteInfoRich, WorldExt};
-use veloren_client_i18n::Localization;
 use veloren_common::{
     clock::Clock,
-    comp::{
-        invite::InviteKind,
-        item::{ItemDef, ItemDefinitionIdOwned, ItemI18n},
-        slot::InvSlotId,
-        ChatType, ControllerInputs, ItemKey, Ori, Pos,
-    },
+    comp::{invite::InviteKind, item::ItemDefinitionIdOwned, ChatType, ControllerInputs, Ori, Pos},
     outcome::Outcome,
     time::DayPeriod,
     trade::{PendingTrade, TradeAction, TradeResult},

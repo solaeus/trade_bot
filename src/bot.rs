@@ -16,9 +16,15 @@ use std::{
 use tokio::runtime::Runtime;
 use vek::Quaternion;
 use veloren_client::{addr::ConnectionArgs, Client, Event as VelorenEvent, SiteInfoRich, WorldExt};
+use veloren_client_i18n::Localization;
 use veloren_common::{
     clock::Clock,
-    comp::{invite::InviteKind, item::ItemDefinitionIdOwned, ChatType, ControllerInputs, Ori, Pos},
+    comp::{
+        invite::InviteKind,
+        item::{ItemDef, ItemDefinitionIdOwned, ItemI18n},
+        slot::InvSlotId,
+        ChatType, ControllerInputs, ItemKey, Ori, Pos,
+    },
     outcome::Outcome,
     time::DayPeriod,
     trade::{PendingTrade, TradeAction, TradeResult},
@@ -144,7 +150,8 @@ impl Bot {
     ///   processing trade actions.
     ///
     /// This function should be modified with care. In addition to being the bot's main loop, it
-    /// also accepts incoming trade invites, which has a potential for error if the bot accepts an /// invite while in the wrong trade mode.
+    /// also accepts incoming trade invites, which has a potential for error if the bot accepts an
+    /// invite while in the wrong trade mode.
     pub fn tick(&mut self) -> Result<(), String> {
         let veloren_events = self
             .client
@@ -221,34 +228,6 @@ impl Bot {
                 let command = split_content.next().unwrap_or_default();
                 let price_correction_message = "Use the format 'price [search_term]'";
                 let correction_message = match command {
-                    "price" => {
-                        for item_name in split_content {
-                            self.send_price_info(&sender, &item_name.to_lowercase())?;
-                        }
-
-                        None
-                    }
-                    "sort" => {
-                        if self.is_user_admin(&sender)? {
-                            if let Some(sort_count) = split_content.next() {
-                                let sort_count = sort_count
-                                    .parse::<u8>()
-                                    .map_err(|error| error.to_string())?;
-
-                                log::info!("Sorting inventory {sort_count} times");
-
-                                self.sort_count = sort_count;
-                            } else {
-                                self.client.sort_inventory();
-
-                                log::info!("Sorting inventory once");
-                            }
-
-                            None
-                        } else {
-                            Some(price_correction_message)
-                        }
-                    }
                     "admin_access" => {
                         if self.is_user_admin(&sender)? && !self.client.is_trading() {
                             log::info!("Providing admin access");
@@ -263,7 +242,40 @@ impl Bot {
                             Some(price_correction_message)
                         }
                     }
-                    "position" => {
+                    "announce" => {
+                        if self.is_user_admin(&sender)? {
+                            self.handle_announcement()?;
+
+                            self.last_announcement = Instant::now();
+
+                            None
+                        } else {
+                            Some(price_correction_message)
+                        }
+                    }
+                    "ori" => {
+                        if self.is_user_admin(&sender)? {
+                            if let Some(orientation) = split_content.next() {
+                                self.orientation = orientation
+                                    .parse::<f32>()
+                                    .map_err(|error| error.to_string())?;
+
+                                None
+                            } else {
+                                Some("Use the format 'orientation [0-360]'")
+                            }
+                        } else {
+                            Some(price_correction_message)
+                        }
+                    }
+                    "price" => {
+                        for item_name in split_content {
+                            self.send_price_info(&sender, &item_name)?;
+                        }
+
+                        None
+                    }
+                    "pos" => {
                         if self.is_user_admin(&sender)? {
                             if let (Some(x), Some(y), Some(z)) = (
                                 split_content.next(),
@@ -286,17 +298,23 @@ impl Bot {
                             Some(price_correction_message)
                         }
                     }
-                    "orientation" => {
+                    "sort" => {
                         if self.is_user_admin(&sender)? {
-                            if let Some(orientation) = split_content.next() {
-                                self.orientation = orientation
-                                    .parse::<f32>()
+                            if let Some(sort_count) = split_content.next() {
+                                let sort_count = sort_count
+                                    .parse::<u8>()
                                     .map_err(|error| error.to_string())?;
 
-                                None
+                                log::info!("Sorting inventory {sort_count} times");
+
+                                self.sort_count = sort_count;
                             } else {
-                                Some("Use the format 'orientation [0-360]'")
+                                self.client.sort_inventory();
+
+                                log::info!("Sorting inventory once");
                             }
+
+                            None
                         } else {
                             Some(price_correction_message)
                         }
@@ -445,7 +463,7 @@ impl Bot {
     /// Manage an active trade.
     ///
     /// This is a rather complex function that should be modified with care. The bot uses its buy
-    /// and sell prices to determine an item's value and determines total value of each side of
+    /// and sell prices to determine an item's value and determines the total value of each side of
     /// the trade. Coins are hard-coded to have a value of 1 each.
     ///
     /// The bot's trading logic is as follows:
@@ -455,11 +473,13 @@ impl Bot {
     /// 3. If their offer includes items I am not buying, remove those items unless they are coins.
     /// 4. If the trade is balanced, accept it.
     /// 5. If the total value of their offer is greater than the total value of my offer:
-    ///     1. If they are offering coins, remove some to balance.
+    ///     1. If they are offering coins, remove them to balance.
     ///     2. If they are not offering coins, add mine to balance.
     /// 6. If the total value of my offer is greater than the total value of their offer:
-    ///     1. If I am offering coins, remove some to balance.
+    ///     1. If I am offering coins, remove them to balance.
     ///     2. If I am not offering coins, add theirs to balance.
+    ///
+    /// See the inline comments for more details.
     #[allow(clippy::comparison_chain)]
     fn handle_trade(&mut self, trade: PendingTrade) -> Result<(), String> {
         if trade.is_empty_trade() {
@@ -548,7 +568,7 @@ impl Bot {
                     }
                 });
 
-        let mut my_items_to_remove = Vec::new();
+        let mut my_item_to_remove = None;
 
         for (slot_id, amount) in my_offer {
             let item = my_inventory.get(*slot_id).ok_or("Failed to get item")?;
@@ -559,11 +579,11 @@ impl Bot {
             }
 
             if !self.sell_prices.contains_key(&item_id) {
-                my_items_to_remove.push((*slot_id, *amount));
+                my_item_to_remove = Some((slot_id, amount));
             }
         }
 
-        let mut their_items_to_remove = Vec::new();
+        let mut their_item_to_remove = None;
 
         for (slot_id, amount) in their_offer {
             let item = their_inventory.get(*slot_id).ok_or("Failed to get item")?;
@@ -574,7 +594,7 @@ impl Bot {
             }
 
             if !self.buy_prices.contains_key(&item_id) {
-                their_items_to_remove.push((*slot_id, *amount));
+                their_item_to_remove = Some((slot_id, amount));
             }
         }
 
@@ -600,31 +620,37 @@ impl Bot {
 
         drop(inventories);
 
-        if !my_items_to_remove.is_empty() {
-            for (item, quantity) in my_items_to_remove {
-                self.client.perform_trade_action(TradeAction::RemoveItem {
-                    item,
-                    quantity,
-                    ours: true,
-                });
-            }
+        // Before running any actual trade logic, remove items that are not for sale or not being
+        // purchased. End this trade action if an item was removed.
+
+        if let Some((slot_id, quantity)) = my_item_to_remove {
+            self.client.perform_trade_action(TradeAction::RemoveItem {
+                item: *slot_id,
+                quantity: *quantity,
+                ours: true,
+            });
 
             return Ok(());
         }
 
-        if !their_items_to_remove.is_empty() {
-            for (item, quantity) in their_items_to_remove {
-                self.client.perform_trade_action(TradeAction::RemoveItem {
-                    item,
-                    quantity,
-                    ours: false,
-                });
-            }
+        if let Some((slot_id, quantity)) = their_item_to_remove {
+            self.client.perform_trade_action(TradeAction::RemoveItem {
+                item: *slot_id,
+                quantity: *quantity,
+                ours: false,
+            });
 
             return Ok(());
         }
 
         let difference = their_offered_items_value - my_offered_items_value;
+
+        // The if/else statements below implement the bot's main feature: buying, selling and
+        // trading items according to the values set in the configuration file. In the case that
+        // either the bot or the other player does not have any coins, the bot will not send an
+        // error and the trade will remain unbalanced. In the case that we try to add more coins
+        // than are available, the server will just add all of the available coins and the trade
+        // will remain unbalanced.
 
         // If the trade is balanced
         if difference == 0 {

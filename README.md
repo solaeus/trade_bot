@@ -2,7 +2,9 @@
 
 A bot that buys, sells and trades with players.
 
-The bot is containerized and can be run without compiling or building anything. Alternatively, you can clone this repository and build the image yourself or build the binary directly with Cargo if you are familiar with Rust.
+The bot is containerized and can be run without compiling or building anything. Alternatively, you
+can clone this repository and build the image yourself or build the binary directly with Cargo if
+you are familiar with Rust.
 
 ## Prerequisites
 
@@ -10,7 +12,8 @@ You must have either [Docker](docker.com) or [Podman](podman.io) installed.
 
 ## Usage
 
-All of these steps can be done with Docker but Podman is shown for the examples. If you use Docker, just replace "podman" with "docker" in your commands.
+All of these steps can be done with Docker but Podman is shown for the examples. If you use
+Docker, just replace "podman" with "docker" in your commands.
 
 ### Setup
 
@@ -30,7 +33,8 @@ Then create a secret to pass the file securely to the container.
 podman secret create secrets.toml secrets.toml
 ```
 
-You will also need a "config.toml" and it needs it be in a "config" directory that can be mounted to the container:
+You will also need a "config.toml" and it needs it be in a "config" directory that can be mounted
+to the container:
 
 ```toml
 # config/config.toml
@@ -71,14 +75,18 @@ Clone this repository. From the project root:
 podman build . -t trade_bot
 ```
 
-Then follow the [above](#running) steps with the tag "trade_bot" instead of "git.jeffa.io/jeff/trade_bot".
+Then follow the [above](#running) steps with the tag "trade_bot" instead of
+"git.jeffa.io/jeff/trade_bot".
 
 ### In-Game Commands
 
 The bot is able to respond to the following commands, which must be sent via "/tell".
 
-- `price [search term]`: Returns the buy/sell offers of any item whose item definition ID contains the search term.
-- `admin_access`: Admin-only, prompts the bot to send a trade invite to the sender, after which it will give away and accept any items until the trade ends.
+- `price [search term]`: Returns the buy/sell offers of any item whose item definition ID contains
+  the search term.
+- `admin_access`: Admin-only, prompts the bot to send a trade invite to the sender, after which it
+  will give away and accept any items until the trade ends.
 - `sort [count (optional)]`: Admin-only, sorts the inventory once or the given number of times.
-- `position [x] [y] [z]`: Admin-only, sets the bot's desired position where it will try to stand (must be close to the character)
-- `orientation [0-360]`: Admin-only, sets the bot's desired orientation (or facing direction)
+- `pos [x] [y] [z]`: Admin-only, sets the bot's desired position where it will try to stand (must
+  be close to the bot's current position)
+- `ori [0-360]`: Admin-only, sets the bot's desired orientation (or facing direction)

@@ -8,11 +8,11 @@ announce its presence and respond to chat messages.
 See [main.rs] for an example of how to run this bot.
 **/
 use std::{
-    collections::HashMap,
     sync::Arc,
     time::{Duration, Instant},
 };
 
+use hashbrown::HashMap;
 use tokio::runtime::Runtime;
 use vek::Quaternion;
 use veloren_client::{addr::ConnectionArgs, Client, Event as VelorenEvent, SiteInfoRich, WorldExt};
@@ -467,7 +467,7 @@ impl Bot {
     ///
     /// The bot's trading logic is as follows:
     ///
-    /// 1. If the trade is empty, do nothing.
+    /// 1. If the trade is empty or hasn't changed, do nothing.
     /// 2. If my offer includes items I am not selling, remove those items unless they are coins.
     /// 3. If their offer includes items I am not buying, remove those items unless they are coins.
     /// 4. If the trade is balanced, accept it.
@@ -507,6 +507,33 @@ impl Bot {
         let get_my_coins = my_inventory
             .get_slot_of_item_by_def_id(&ItemDefinitionIdOwned::Simple(COINS.to_string()));
         let their_inventory = inventories.get(them).ok_or("Failed to find inventory")?;
+        let item_offers = {
+            let mut their_items = HashMap::with_capacity(their_offer.len());
+
+            for (slot_id, quantity) in their_offer {
+                if let Some(item) = their_inventory.get(*slot_id) {
+                    their_items.insert(item.persistence_item_id(), *quantity);
+                }
+            }
+
+            let mut my_items = HashMap::with_capacity(my_offer.len());
+
+            for (slot_id, quantity) in my_offer {
+                if let Some(item) = my_inventory.get(*slot_id) {
+                    my_items.insert(item.persistence_item_id(), *quantity);
+                }
+            }
+
+            (my_items, their_items)
+        };
+
+        // If the trade hasn't changed, do nothing to avoid spamming the server.
+        if let Some(previous) = &self.previous_offer {
+            if previous == &item_offers {
+                return Ok(());
+            }
+        }
+
         let get_their_coins = their_inventory
             .get_slot_of_item_by_def_id(&ItemDefinitionIdOwned::Simple(COINS.to_string()));
         let (mut their_offered_coin_amount, mut my_offered_coin_amount) = (0, 0);
@@ -596,26 +623,6 @@ impl Bot {
                 their_item_to_remove = Some((slot_id, amount));
             }
         }
-
-        let item_offers = {
-            let mut their_items = HashMap::with_capacity(their_offer.len());
-
-            for (slot_id, quantity) in their_offer {
-                if let Some(item) = their_inventory.get(*slot_id) {
-                    their_items.insert(item.persistence_item_id(), *quantity);
-                }
-            }
-
-            let mut my_items = HashMap::with_capacity(my_offer.len());
-
-            for (slot_id, quantity) in my_offer {
-                if let Some(item) = my_inventory.get(*slot_id) {
-                    my_items.insert(item.persistence_item_id(), *quantity);
-                }
-            }
-
-            (my_items, their_items)
-        };
 
         drop(inventories);
 

@@ -258,7 +258,7 @@ impl Bot {
 
                                 None
                             } else {
-                                Some("Use the format 'orientation [0-360]'")
+                                Some("Use the format 'ori [0-360]'")
                             }
                         } else {
                             Some(price_correction_message)
@@ -288,7 +288,7 @@ impl Bot {
 
                                 None
                             } else {
-                                Some("Use the format 'position [x] [y] [z]'.")
+                                Some("Use the format 'pos [x] [y] [z]'.")
                             }
                         } else {
                             Some(price_correction_message)

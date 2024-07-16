@@ -24,7 +24,7 @@ Create a "secrets.toml" file:
 username = "bot_username"
 password = "bot_password"
 character = "bot_character"
-admins = ["my_username"]
+admins = ["my_username"] # You may add usernames or UUIDs to this list. The only advantage of using UUIDs is that it will persist accross changes to your username or player alias.
 ```
 
 Then create a secret to pass the file securely to the container.

@@ -807,13 +807,18 @@ impl Bot {
 
     /// Determines if the Uid belongs to an admin.
     fn is_user_admin(&self, uid: &Uid) -> Result<bool, String> {
-        let sender_uuid = self
-            .find_uuid(uid)
-            .ok_or("Failed to find uuid")?
-            .to_string();
         let sender_name = self.find_player_alias(uid).ok_or("Failed to find name")?;
 
-        Ok(self.admins.contains(sender_name) || self.admins.contains(&sender_uuid))
+        if self.admins.contains(sender_name) {
+            Ok(true)
+        } else {
+            let sender_uuid = self
+                .find_uuid(uid)
+                .ok_or("Failed to find uuid")?
+                .to_string();
+
+            Ok(self.admins.contains(&sender_uuid))
+        }
     }
 
     /// Moves the character to the configured position and orientation.

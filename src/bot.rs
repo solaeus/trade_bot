@@ -16,10 +16,7 @@ use veloren_common::{
     clock::Clock,
     comp::{
         invite::InviteKind,
-        item::{
-            modular, ItemBase, ItemDef, ItemDefinitionId, ItemDefinitionIdOwned, ItemDesc,
-            ItemI18n, MaterialStatManifest,
-        },
+        item::{ItemDefinitionId, ItemDesc, ItemI18n, MaterialStatManifest},
         slot::InvSlotId,
         tool::AbilityMap,
         ChatType, ControllerInputs, Item, Ori, Pos,
@@ -33,7 +30,7 @@ use veloren_common::{
 };
 use veloren_common_net::sync::WorldSyncExt;
 
-use crate::PriceList;
+use crate::config::PriceList;
 
 const COINS: &str = "common.items.utility.coins";
 const COINS_ID: ItemDefinitionId = ItemDefinitionId::Simple(Cow::Borrowed(COINS));

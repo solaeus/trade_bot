@@ -38,7 +38,7 @@ to the container:
 
 ```toml
 # config/config.toml
-position = [0, 0, 0] # Change these to the desired X, Y, Z coordinates
+position = [0, 0, 0] # Change these to the desired X, Y, Z coordinates. The bot will try to stand here, but the coordinates must be close to the bot's spawn point.
 orientation = 0 # 0 = North, 90 = West, 180 = South, 270 = East
 announcement = "I love cheese! I am at {location}." # Optional. Announcements are sent every 45 minutes. Use {location} to insert the bot's current location.
 

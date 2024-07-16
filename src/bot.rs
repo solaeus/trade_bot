@@ -174,6 +174,8 @@ impl Bot {
             } else if self.client.pending_invites().is_empty() {
                 match self.trade_mode {
                     TradeMode::AdminAccess => {
+                        // This should never happen, but in case the server fails to send a trade
+                        // invite, the bot will switch to trade mode.
                         self.trade_mode = TradeMode::Trade;
                     }
                     TradeMode::Trade => {
@@ -364,7 +366,10 @@ impl Bot {
                     .ok_or("Failed to find trade party")?;
                 let their_party = if my_party == 0 { 1 } else { 0 };
                 let their_uid = trade.parties[their_party];
-                let their_name = self.find_name(&their_uid).ok_or("Failed to find name")?;
+                let their_name = self
+                    .find_name(&their_uid)
+                    .ok_or("Failed to find name")?
+                    .clone();
 
                 match result {
                     TradeResult::Completed => {
@@ -384,7 +389,7 @@ impl Bot {
                 }
 
                 if let TradeMode::AdminAccess = self.trade_mode {
-                    log::info!("End of admin access");
+                    log::info!("End of admin access for {their_name}");
 
                     self.trade_mode = TradeMode::Trade;
                 }

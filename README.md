@@ -94,7 +94,7 @@ orientation = 0
 
 # Optional. Announcements are sent every 45 minutes. Use {location} to insert the bot's current
 # location. If not set, the bot will not send /world announcements but will still send /region
-# announcement with usage instructions.
+# announcements with usage instructions.
 announcement = "I love cheese! I am at {location}."
 
 # The buy_prices and sell_prices tables are required. The keys are item definition IDs and the

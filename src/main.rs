@@ -44,6 +44,12 @@ fn main() {
 
         toml::from_str::<Config>(&file_content).expect("Failed to parse config")
     };
+    let game_server = config
+        .game_server
+        .unwrap_or("server.veloren.net".to_string());
+    let auth_server = config
+        .auth_server
+        .unwrap_or("https://auth.veloren.net".to_string());
     let buy_prices_with_full_id = config
         .buy_prices
         .into_iter()
@@ -63,6 +69,8 @@ fn main() {
         })
         .collect();
     let mut bot = Bot::new(
+        game_server,
+        &auth_server,
         secrets.username,
         &secrets.password,
         &secrets.character,

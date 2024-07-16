@@ -72,6 +72,8 @@ impl Bot {
     /// and return a Bot instance ready to run.
     #[allow(clippy::too_many_arguments)]
     pub fn new(
+        game_server: String,
+        auth_server: &str,
         username: String,
         password: &str,
         character: &str,
@@ -84,7 +86,7 @@ impl Bot {
     ) -> Result<Self, String> {
         log::info!("Connecting to veloren");
 
-        let mut client = connect_to_veloren(&username, password)?;
+        let mut client = connect_to_veloren(game_server, auth_server, &username, password)?;
         let mut clock = Clock::new(Duration::from_secs_f64(1.0 / 30.0));
 
         client.load_character_list();
@@ -917,14 +919,19 @@ enum TradeMode {
     Trade,
 }
 
-fn connect_to_veloren(username: &str, password: &str) -> Result<Client, String> {
+fn connect_to_veloren(
+    game_server: String,
+    auth_server: &str,
+    username: &str,
+    password: &str,
+) -> Result<Client, String> {
     let runtime = Arc::new(Runtime::new().unwrap());
     let runtime2 = Arc::clone(&runtime);
 
     runtime
         .block_on(Client::new(
             ConnectionArgs::Tcp {
-                hostname: "server.veloren.net".to_string(),
+                hostname: game_server,
                 prefer_ipv6: false,
             },
             runtime2,
@@ -932,7 +939,7 @@ fn connect_to_veloren(username: &str, password: &str) -> Result<Client, String> 
             username,
             password,
             None,
-            |provider| provider == "https://auth.veloren.net",
+            |provider| provider == auth_server,
             &|_| {},
             |_| {},
             Default::default(),

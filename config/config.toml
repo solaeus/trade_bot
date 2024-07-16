@@ -1,63 +1,20 @@
 position = [17720.0, 14951.0, 237.0]
 orientation = 0
 
-[buy_prices]
+[buy_prices.simple]
 "food.cheese" = 50
 
-[sell_prices]
-# Armor
-"armor.misc.neck.carcanet_of_wrath" = 20_000
+[[buy_prices.modular]]
+material = "Iron"
+primary = "sword.greatsword"
+secondary = "sword.long"
+price = 1000
 
-## Boreal Armor
-"armor.boreal.back" = 250_000
-"armor.boreal.belt" = 250_000
-"armor.boreal.chest" = 250_000
-"armor.boreal.foot" = 250_000
-"armor.boreal.hand" = 250_000
-"armor.boreal.pants" = 250_000
-"armor.boreal.shoulder" = 250_000
-"armor.misc.head.boreal_warhelm" = 450_000
-
-# Hats
-"armor.misc.head.cat_capuche" = 750_000
-"armor.misc.head.hare_hat" = 150_000
-"armor.misc.head.winged_coronet" = 40_000
-"calendar.christmas.armor.misc.head.woolly_wintercap" = 250_000
-
-# Crafting
-"crafting_ing.alkahest" = 6_000
-"crafting_ing.brinestone" = 2_000
-"crafting_ing.coral_branch" = 1_000
-"crafting_ing.hide.dragon_scale" = 5_000
-"crafting_ing.dwarven_battery" = 40_000
-"log.eldwood" = 3_000
-"mineral.ingot.orichalcum" = 8_000
-"mineral.ore.ancient_gold" = 10_000
-
-# Potions
+[sell_prices.simple]
 "consumable.potion_minor" = 150
 
-# Gliders
-"glider.skullgrin" = 20_000
-
-# Recipes
-"recipes.armor.brinestone" = 8_000
-"recipes.equipment.advanced" = 8_000
-"recipes.unique.mindflayer_spellbag" = 10_000
-"recipes.unique.abyssal_gorget" = 6_000
-
-# Instruments
-"tool.instruments.icy_talharpa" = 500_000
-"tool.instruments.steeltonguedrum" = 300_000
-
-# Legendary Weapons
-"weapons.axe.parashu" = 100_000
-"weapons.sword.caladbolg" = 150_000
-"weapons.staff.laevateinn" = 60_000
-"weapons.hammer.mjolnir" = 150_000
-"weapons.sceptre.caduceus" = 150_000
-
-# Lanterns
-"boss_drops.lantern" = 40_000 # Magic Lantern
-"lantern.blue_0" = 20_000
-"lantern.geode_purp" = 20_000
+[[sell_prices.modular]]
+material = "Iron"
+primary = "sword.greatsword"
+secondary = "sword.long"
+price = 1000

@@ -2,24 +2,165 @@
 
 mod bot;
 
-use std::{env::var, fs::read_to_string};
+use std::{borrow::Cow, env::var, fs::read_to_string, str::FromStr};
 
 use bot::Bot;
 use hashbrown::HashMap;
-use serde::{Deserialize, Serialize};
+use serde::{de::Visitor, Deserialize};
+use veloren_common::comp::item::{ItemDefinitionId, ItemDefinitionIdOwned, Material};
 
-#[derive(Serialize, Deserialize)]
+pub struct PriceList {
+    pub simple: HashMap<ItemDefinitionIdOwned, u32>,
+    pub modular: Vec<ModularItemPrice>,
+}
+
+impl<'de> Deserialize<'de> for PriceList {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_map(PriceListVisitor)
+    }
+}
+
+pub struct PriceListVisitor;
+
+impl<'de> Visitor<'de> for PriceListVisitor {
+    type Value = PriceList;
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        formatter.write_str("a map with simple and/or modular keys")
+    }
+
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: serde::de::MapAccess<'de>,
+    {
+        let mut simple = None;
+        let mut modular = None;
+
+        while let Some(key) = map.next_key::<String>()? {
+            match key.as_str() {
+                "simple" => {
+                    let simple_prices_with_item_string =
+                        map.next_value::<HashMap<String, u32>>()?;
+                    let simple_prices_with_item_id = simple_prices_with_item_string
+                        .into_iter()
+                        .map(|(mut key, value)| {
+                            key.insert_str(0, "common.items.");
+
+                            (ItemDefinitionIdOwned::Simple(key), value)
+                        })
+                        .collect();
+
+                    simple = Some(simple_prices_with_item_id);
+                }
+                "modular" => {
+                    modular = Some(map.next_value()?);
+                }
+                _ => {
+                    return Err(serde::de::Error::unknown_field(
+                        &key,
+                        &["simple", "modular"],
+                    ));
+                }
+            }
+        }
+
+        Ok(PriceList {
+            simple: simple.ok_or_else(|| serde::de::Error::missing_field("simple"))?,
+            modular: modular.ok_or_else(|| serde::de::Error::missing_field("modular"))?,
+        })
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct ModularItemPrice {
+    pub material: Material,
+    pub primary: ItemDefinitionIdOwned,
+    pub secondary: ItemDefinitionIdOwned,
+    pub price: u32,
+}
+
+impl<'de> Deserialize<'de> for ModularItemPrice {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_map(ModularPriceVisitor)
+    }
+}
+
+struct ModularPriceVisitor;
+
+impl<'de> Visitor<'de> for ModularPriceVisitor {
+    type Value = ModularItemPrice;
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        formatter.write_str("a map with material, primary, secondary and price keys")
+    }
+
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: serde::de::MapAccess<'de>,
+    {
+        let mut material = None;
+        let mut primary = None;
+        let mut secondary = None;
+        let mut price = None;
+
+        while let Some(key) = map.next_key::<String>()? {
+            match key.as_str() {
+                "material" => {
+                    material = Some(map.next_value()?);
+                }
+                "primary" => {
+                    let mut primary_string = map.next_value::<String>()?;
+
+                    primary_string.insert_str(0, "common.items.modular.weapon.primary.");
+
+                    primary = Some(ItemDefinitionIdOwned::Simple(primary_string));
+                }
+                "secondary" => {
+                    let mut secondary_string = map.next_value::<String>()?;
+
+                    secondary_string.insert_str(0, "common.items.modular.weapon.secondary.");
+
+                    secondary = Some(ItemDefinitionIdOwned::Simple(secondary_string));
+                }
+                "price" => {
+                    price = Some(map.next_value()?);
+                }
+                _ => {
+                    return Err(serde::de::Error::unknown_field(
+                        &key,
+                        &["material", "primary", "secondary", "price"],
+                    ));
+                }
+            }
+        }
+
+        Ok(ModularItemPrice {
+            material: material.ok_or_else(|| serde::de::Error::missing_field("material"))?,
+            primary: primary.ok_or_else(|| serde::de::Error::missing_field("primary"))?,
+            secondary: secondary.ok_or_else(|| serde::de::Error::missing_field("secondary"))?,
+            price: price.ok_or_else(|| serde::de::Error::missing_field("price"))?,
+        })
+    }
+}
+
+#[derive(Deserialize)]
 struct Config {
     pub game_server: Option<String>,
     pub auth_server: Option<String>,
     pub position: Option<[f32; 3]>,
     pub orientation: Option<f32>,
     pub announcement: Option<String>,
-    pub buy_prices: HashMap<String, u32>,
-    pub sell_prices: HashMap<String, u32>,
+    pub buy_prices: PriceList,
+    pub sell_prices: PriceList,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 pub struct Secrets {
     pub username: String,
     pub password: String,
@@ -50,24 +191,6 @@ fn main() {
     let auth_server = config
         .auth_server
         .unwrap_or("https://auth.veloren.net".to_string());
-    let buy_prices_with_full_id = config
-        .buy_prices
-        .into_iter()
-        .map(|(mut item_id, price)| {
-            item_id.insert_str(0, "common.items.");
-
-            (item_id, price)
-        })
-        .collect();
-    let sell_prices_with_full_id = config
-        .sell_prices
-        .into_iter()
-        .map(|(mut item_id, price)| {
-            item_id.insert_str(0, "common.items.");
-
-            (item_id, price)
-        })
-        .collect();
     let mut bot = Bot::new(
         game_server,
         &auth_server,
@@ -75,8 +198,8 @@ fn main() {
         &secrets.password,
         &secrets.character,
         secrets.admins,
-        buy_prices_with_full_id,
-        sell_prices_with_full_id,
+        config.buy_prices,
+        config.sell_prices,
         config.position,
         config.orientation,
         config.announcement,

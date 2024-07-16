@@ -2,18 +2,11 @@
 
 mod bot;
 
-use std::{collections::HashMap, env::var, fs::read_to_string};
+use std::{env::var, fs::read_to_string};
 
 use bot::Bot;
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-
-#[derive(Serialize, Deserialize)]
-pub struct Secrets {
-    pub username: String,
-    pub password: String,
-    pub character: String,
-    pub admins: Vec<String>,
-}
 
 #[derive(Serialize, Deserialize)]
 struct Config {
@@ -22,6 +15,14 @@ struct Config {
     pub announcement: Option<String>,
     pub buy_prices: HashMap<String, u32>,
     pub sell_prices: HashMap<String, u32>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Secrets {
+    pub username: String,
+    pub password: String,
+    pub character: String,
+    pub admins: Vec<String>,
 }
 
 fn main() {

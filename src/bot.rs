@@ -8,6 +8,7 @@ announce its presence and respond to chat messages.
 See [main.rs] for an example of how to run this bot.
 **/
 use std::{
+    borrow::Cow,
     sync::Arc,
     time::{Duration, Instant},
 };
@@ -16,9 +17,15 @@ use hashbrown::HashMap;
 use tokio::runtime::Runtime;
 use vek::Quaternion;
 use veloren_client::{addr::ConnectionArgs, Client, Event as VelorenEvent, SiteInfoRich, WorldExt};
+use veloren_client_i18n::LocalizationHandle;
 use veloren_common::{
     clock::Clock,
-    comp::{invite::InviteKind, item::ItemDefinitionIdOwned, ChatType, ControllerInputs, Ori, Pos},
+    comp::{
+        invite::InviteKind,
+        item::{ItemDefinitionId, ItemDefinitionIdOwned, ItemDesc, ItemI18n, MaterialStatManifest},
+        tool::AbilityMap,
+        ChatType, ControllerInputs, Item, Ori, Pos,
+    },
     outcome::Outcome,
     time::DayPeriod,
     trade::{PendingTrade, TradeAction, TradeResult},
@@ -43,6 +50,10 @@ pub struct Bot {
 
     client: Client,
     clock: Clock,
+    ability_map: AbilityMap,
+    material_manifest: MaterialStatManifest,
+    item_i18n: ItemI18n,
+    localization: LocalizationHandle,
 
     buy_prices: HashMap<String, u32>,
     sell_prices: HashMap<String, u32>,
@@ -75,8 +86,6 @@ impl Bot {
         let mut client = connect_to_veloren(&username, password)?;
         let mut clock = Clock::new(Duration::from_secs_f64(1.0 / 30.0));
 
-        log::info!("Selecting a character");
-
         client.load_character_list();
 
         while client.character_list().loading {
@@ -95,6 +104,8 @@ impl Bot {
             .character
             .id
             .ok_or("Failed to get character ID")?;
+
+        log::info!("Selecting a character");
 
         // This loop waits and retries requesting the character in the case that the character has
         // logged out to recently.
@@ -122,6 +133,10 @@ impl Bot {
             admins,
             client,
             clock,
+            ability_map: AbilityMap::load().read().clone(),
+            material_manifest: MaterialStatManifest::load().read().clone(),
+            item_i18n: ItemI18n::new_expect(),
+            localization: LocalizationHandle::load_expect("en"),
             buy_prices,
             sell_prices,
             trade_mode: TradeMode::Trade,
@@ -722,6 +737,31 @@ impl Bot {
         let mut found = false;
 
         for (item_id, price) in &self.buy_prices {
+            let item = Item::new_from_item_definition_id(
+                ItemDefinitionId::Simple(Cow::Borrowed(item_id)),
+                &self.ability_map,
+                &self.material_manifest,
+            )
+            .map_err(|error| error.to_string())?;
+            let (item_name_i18n_id, _) = item.i18n(&self.item_i18n);
+            let item_name = self.localization.read().get_content(&item_name_i18n_id);
+
+            if item_name.contains(search_term) {
+                log::info!("Sending price info on {item_name} to {player_name}");
+
+                self.client.send_command(
+                    "tell".to_string(),
+                    vec![
+                        player_name.clone(),
+                        format!("Selling {item_name} for {price} coins."),
+                    ],
+                );
+
+                found = true;
+
+                continue;
+            }
+
             if item_id.contains(search_term) {
                 let short_id = item_id.splitn(3, '.').last().unwrap_or_default();
 
@@ -740,6 +780,31 @@ impl Bot {
         }
 
         for (item_id, price) in &self.sell_prices {
+            let item = Item::new_from_item_definition_id(
+                ItemDefinitionId::Simple(Cow::Borrowed(item_id)),
+                &self.ability_map,
+                &self.material_manifest,
+            )
+            .map_err(|error| error.to_string())?;
+            let (item_name_i18n_id, _) = item.i18n(&self.item_i18n);
+            let item_name = self.localization.read().get_content(&item_name_i18n_id);
+
+            if item_name.contains(search_term) {
+                log::info!("Sending price info on {item_name} to {player_name}");
+
+                self.client.send_command(
+                    "tell".to_string(),
+                    vec![
+                        player_name.clone(),
+                        format!("Selling {item_name} for {price} coins."),
+                    ],
+                );
+
+                found = true;
+
+                continue;
+            }
+
             if item_id.contains(search_term) {
                 let short_id = item_id.splitn(3, '.').last().unwrap_or_default();
 

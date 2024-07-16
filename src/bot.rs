@@ -23,6 +23,7 @@ use veloren_common::{
     comp::{
         invite::InviteKind,
         item::{ItemDefinitionId, ItemDefinitionIdOwned, ItemDesc, ItemI18n, MaterialStatManifest},
+        slot::InvSlotId,
         tool::AbilityMap,
         ChatType, ControllerInputs, Item, Ori, Pos,
     },
@@ -59,7 +60,7 @@ pub struct Bot {
     sell_prices: HashMap<String, u32>,
     trade_mode: TradeMode,
 
-    previous_offer: Option<(HashMap<String, u32>, HashMap<String, u32>)>,
+    previous_offer: Option<(HashMap<InvSlotId, u32>, HashMap<InvSlotId, u32>)>,
     last_trade_action: Instant,
     last_announcement: Instant,
     last_ouch: Instant,
@@ -108,7 +109,7 @@ impl Bot {
         log::info!("Selecting a character");
 
         // This loop waits and retries requesting the character in the case that the character has
-        // logged out to recently.
+        // logged out too recently.
         while client.position().is_none() {
             client.request_character(
                 character_id,
@@ -504,82 +505,38 @@ impl Bot {
             .which_party(self.client.uid().ok_or("Failed to get uid")?)
             .ok_or("Failed to get offer index")?;
         let their_offer_index = if my_offer_index == 0 { 1 } else { 0 };
-        let (my_offer, their_offer, them) = {
+        let (my_offer, their_offer) = {
             (
                 &trade.offers[my_offer_index],
                 &trade.offers[their_offer_index],
-                self.client
-                    .state()
-                    .ecs()
-                    .entity_from_uid(trade.parties[their_offer_index])
-                    .ok_or("Failed to find player".to_string())?,
             )
-        };
-        let inventories = self.client.inventories();
-        let my_inventory = inventories
-            .get(self.client.entity())
-            .ok_or("Failed to find inventory")?;
-        let get_my_coins = my_inventory
-            .get_slot_of_item_by_def_id(&ItemDefinitionIdOwned::Simple(COINS.to_string()));
-        let their_inventory = inventories.get(them).ok_or("Failed to find inventory")?;
-        let item_offers = {
-            let mut their_items = HashMap::with_capacity(their_offer.len());
-
-            for (slot_id, quantity) in their_offer {
-                if let Some(item) = their_inventory.get(*slot_id) {
-                    their_items.insert(item.persistence_item_id(), *quantity);
-                }
-            }
-
-            let mut my_items = HashMap::with_capacity(my_offer.len());
-
-            for (slot_id, quantity) in my_offer {
-                if let Some(item) = my_inventory.get(*slot_id) {
-                    my_items.insert(item.persistence_item_id(), *quantity);
-                }
-            }
-
-            (my_items, their_items)
         };
 
         // If the trade hasn't changed, do nothing to avoid spamming the server.
         if let Some(previous) = &self.previous_offer {
-            if previous == &item_offers {
+            if (&previous.0, &previous.1) == (my_offer, their_offer) {
                 return Ok(());
             }
         }
 
-        let get_their_coins = their_inventory
-            .get_slot_of_item_by_def_id(&ItemDefinitionIdOwned::Simple(COINS.to_string()));
-        let (mut their_offered_coin_amount, mut my_offered_coin_amount) = (0, 0);
-        let their_offered_items_value =
-            their_offer
-                .into_iter()
-                .fold(0, |acc: i32, (slot_id, quantity)| {
-                    if let Some(item) = their_inventory.get(*slot_id) {
-                        let item_id = item.persistence_item_id();
+        let inventories = self.client.inventories();
+        let me = self.client.entity();
+        let them = self
+            .client
+            .state()
+            .ecs()
+            .entity_from_uid(trade.parties[their_offer_index])
+            .ok_or("Failed to find player".to_string())?;
+        let (my_inventory, their_inventory) = (
+            inventories.get(me).ok_or("Failed to find inventory")?,
+            inventories.get(them).ok_or("Failed to find inventory")?,
+        );
 
-                        let item_value = if item_id == COINS {
-                            their_offered_coin_amount = *quantity as i32;
+        let coins = ItemDefinitionIdOwned::Simple(COINS.to_string());
+        let get_my_coins = my_inventory.get_slot_of_item_by_def_id(&coins);
+        let get_their_coins = their_inventory.get_slot_of_item_by_def_id(&coins);
 
-                            1
-                        } else {
-                            self.buy_prices
-                                .get(&item_id)
-                                .map(|int| *int as i32)
-                                .unwrap_or_else(|| {
-                                    self.sell_prices
-                                        .get(&item_id)
-                                        .map(|int| 0 - *int as i32)
-                                        .unwrap_or(0)
-                                })
-                        };
-
-                        acc.saturating_add(item_value.saturating_mul(*quantity as i32))
-                    } else {
-                        acc
-                    }
-                });
+        let (mut my_offered_coin_amount, mut their_offered_coin_amount) = (0, 0);
         let my_offered_items_value =
             my_offer
                 .into_iter()
@@ -600,6 +557,34 @@ impl Bot {
                                         .get(&item_id)
                                         .map(|int| 0 - *int as i32)
                                         .unwrap_or(i32::MIN)
+                                })
+                        };
+
+                        acc.saturating_add(item_value.saturating_mul(*quantity as i32))
+                    } else {
+                        acc
+                    }
+                });
+        let their_offered_items_value =
+            their_offer
+                .into_iter()
+                .fold(0, |acc: i32, (slot_id, quantity)| {
+                    if let Some(item) = their_inventory.get(*slot_id) {
+                        let item_id = item.persistence_item_id();
+
+                        let item_value = if item_id == COINS {
+                            their_offered_coin_amount = *quantity as i32;
+
+                            1
+                        } else {
+                            self.buy_prices
+                                .get(&item_id)
+                                .map(|int| *int as i32)
+                                .unwrap_or_else(|| {
+                                    self.sell_prices
+                                        .get(&item_id)
+                                        .map(|int| 0 - *int as i32)
+                                        .unwrap_or(0)
                                 })
                         };
 
@@ -641,6 +626,10 @@ impl Bot {
 
         drop(inventories);
 
+        // Up until now there may have been an error, so we only update the previous offer now.
+        // The trade action is infallible from here.
+        self.previous_offer = Some((my_offer.clone(), their_offer.clone()));
+
         // Before running any actual trade logic, remove items that are not for sale or not being
         // purchased. End this trade action if an item was removed.
 
@@ -667,16 +656,12 @@ impl Bot {
         let difference = their_offered_items_value - my_offered_items_value;
 
         // The if/else statements below implement the bot's main feature: buying, selling and
-        // trading items according to the values set in the configuration file. In the case that
-        // either the bot or the other player does not have any coins, the bot will not send an
-        // error and the trade will remain unbalanced. In the case that we try to add more coins
-        // than are available, the server will just add all of the available coins and the trade
-        // will remain unbalanced.
+        // trading items according to the values set in the configuration file. Coins are used to
+        // balance the value of the trade. In the case that we try to add more coins than are
+        // available, the server will correct it by adding all of the available coins.
 
         // If the trade is balanced
         if difference == 0 {
-            self.previous_offer = Some(item_offers);
-
             // Accept
             self.client
                 .perform_trade_action(TradeAction::Accept(trade.phase));
@@ -729,7 +714,11 @@ impl Bot {
 
     /// Attempts to find an item based on a search term and sends the price info to the target
     /// player.
+    ///
+    /// The search is case-insensitive. It searches both the item name then, if the search term is
+    /// not found, it searches the item's ID as written in the configuration file.
     fn send_price_info(&mut self, target: &Uid, search_term: &str) -> Result<(), String> {
+        let search_term = search_term.to_lowercase();
         let player_name = self
             .find_player_alias(target)
             .ok_or("Failed to find player name")?
@@ -737,9 +726,9 @@ impl Bot {
         let mut found = false;
 
         for (item_id, price) in &self.buy_prices {
-            let item_name = self.get_item_name(item_id);
+            let item_name = self.get_item_name(item_id).to_lowercase();
 
-            if item_name.contains(search_term) {
+            if item_name.contains(&search_term) {
                 log::info!("Sending price info on {item_name} to {player_name}");
 
                 self.client.send_command(
@@ -755,7 +744,7 @@ impl Bot {
                 continue;
             }
 
-            if item_id.contains(search_term) {
+            if item_id.contains(&search_term) {
                 let short_id = item_id.splitn(3, '.').last().unwrap_or_default();
 
                 log::info!("Sending price info on {short_id} to {player_name}");
@@ -773,9 +762,9 @@ impl Bot {
         }
 
         for (item_id, price) in &self.sell_prices {
-            let item_name = self.get_item_name(item_id);
+            let item_name = self.get_item_name(item_id).to_lowercase();
 
-            if item_name.contains(search_term) {
+            if item_name.contains(&search_term) {
                 log::info!("Sending price info on {item_name} to {player_name}");
 
                 self.client.send_command(
@@ -791,7 +780,7 @@ impl Bot {
                 continue;
             }
 
-            if item_id.contains(search_term) {
+            if item_id.contains(&search_term) {
                 let short_id = item_id.splitn(3, '.').last().unwrap_or_default();
 
                 log::info!("Sending price info on {short_id} to {player_name}");
@@ -866,10 +855,10 @@ impl Bot {
         Ok(())
     }
 
-    /// Gets the name of an item from its item definition id.
-    fn get_item_name(&self, item: &str) -> String {
+    /// Gets the name of an item from its id.
+    fn get_item_name(&self, item_id: &str) -> String {
         let item = Item::new_from_item_definition_id(
-            ItemDefinitionId::Simple(Cow::Borrowed(item)),
+            ItemDefinitionId::Simple(Cow::Borrowed(item_id)),
             &self.ability_map,
             &self.material_manifest,
         )

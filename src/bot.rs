@@ -718,6 +718,7 @@ impl Bot {
     /// The search is case-insensitive. It searches both the item name then, if the search term is
     /// not found, it searches the item's ID as written in the configuration file.
     fn send_price_info(&mut self, target: &Uid, search_term: &str) -> Result<(), String> {
+        let original_search_term = search_term;
         let search_term = search_term.to_lowercase();
         let player_name = self
             .find_player_alias(target)
@@ -726,25 +727,21 @@ impl Bot {
         let mut found = false;
 
         for (item_id, price) in &self.buy_prices {
-            let item_name = self.get_item_name(item_id).to_lowercase();
+            let item_name = self.get_item_name(item_id);
 
-            if item_name.contains(&search_term) {
+            if item_name.to_lowercase().contains(&search_term) {
                 log::info!("Sending price info on {item_name} to {player_name}");
 
                 self.client.send_command(
                     "tell".to_string(),
                     vec![
                         player_name.clone(),
-                        format!("Selling {item_name} for {price} coins."),
+                        format!("Buying {item_name} for {price} coins."),
                     ],
                 );
 
                 found = true;
-
-                continue;
-            }
-
-            if item_id.contains(&search_term) {
+            } else if item_id.contains(&search_term) {
                 let short_id = item_id.splitn(3, '.').last().unwrap_or_default();
 
                 log::info!("Sending price info on {short_id} to {player_name}");
@@ -762,9 +759,9 @@ impl Bot {
         }
 
         for (item_id, price) in &self.sell_prices {
-            let item_name = self.get_item_name(item_id).to_lowercase();
+            let item_name = self.get_item_name(item_id);
 
-            if item_name.contains(&search_term) {
+            if item_name.to_lowercase().contains(&search_term) {
                 log::info!("Sending price info on {item_name} to {player_name}");
 
                 self.client.send_command(
@@ -776,11 +773,7 @@ impl Bot {
                 );
 
                 found = true;
-
-                continue;
-            }
-
-            if item_id.contains(&search_term) {
+            } else if item_id.contains(&search_term) {
                 let short_id = item_id.splitn(3, '.').last().unwrap_or_default();
 
                 log::info!("Sending price info on {short_id} to {player_name}");
@@ -798,11 +791,14 @@ impl Bot {
         }
 
         if !found {
-            log::info!("Found no price for \"{search_term}\" for {player_name}");
+            log::info!("Found no price for \"{original_search_term}\" for {player_name}");
 
             self.client.send_command(
                 "tell".to_string(),
-                vec![player_name, format!("I don't have a price for that item.")],
+                vec![
+                    player_name,
+                    format!("I don't have a price for {original_search_term}."),
+                ],
             );
         }
 

@@ -101,17 +101,14 @@ announcement = "I love cheese! I am at {location}."
 # values are the price in coins. You may type in-game "/give_item common.items." and press Tab to
 # explore the item definition IDs. Then just leave off the "common.items." part in this file.
 
-[buy_prices.simple]
+[buy_prices]
 "food.cheese" = 50
 
-[sell_prices.simple]
+[sell_prices]
 "consumable.potion_minor" = 150
 
-[sell_prices.modular]
-material = "mineral.ingot.orichalcum"
-primary = "sword.greatsword"
-seconday = "sword.long"
-price = 45_000
+# Modular weapons listed by that components: "material|primary|secondary".
+"iron|sword.greatsword|sword.long" = 1_000
 ```
 
 ### Running

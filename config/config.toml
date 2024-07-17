@@ -1,20 +1,10 @@
 position = [17720.0, 14951.0, 237.0]
 orientation = 0
 
-[buy_prices.simple]
+[buy_prices]
 "food.cheese" = 50
+"iron|sword.greatsword|sword.long" = 1_000
 
-[[buy_prices.modular]]
-material = "Iron"
-primary = "sword.greatsword"
-secondary = "sword.long"
-price = 1000
-
-[sell_prices.simple]
+[sell_prices]
 "consumable.potion_minor" = 150
-
-[[sell_prices.modular]]
-material = "Iron"
-primary = "sword.greatsword"
-secondary = "sword.long"
-price = 1000
+"iron|sword.greatsword|sword.long" = 1_000

@@ -1,8 +1,26 @@
-use hashbrown::HashMap;
-use serde::{de::Visitor, Deserialize};
+/**
+Configuration used to initiate the bot.
+
+The Config struct is used to store configuration values that are not sensitive. This includes the
+price data for items, the game server to connect to, and the position and orientation of the bot.
+The price lists have manual implementations for deserialization to allow turning shortened item
+IDs into the full IDs used by the Veloren client.
+
+The Secrets struct is used to store sensitive information that should not be shared. This should
+be read from a separate file that is not checked into version control. In production, use a secure
+means of storing this information, such as the secret manager for Podman.
+*/
+use hashbrown::{hash_map, HashMap};
+use serde::{
+    de::{self, Visitor},
+    Deserialize,
+};
 use veloren_common::comp::item::{ItemDefinitionIdOwned, Material};
 
 #[derive(Deserialize)]
+/// Non-sensitive configuration values.
+///
+/// See the [module-level documentation](index.html) for more information.
 pub struct Config {
     pub game_server: Option<String>,
     pub auth_server: Option<String>,
@@ -14,6 +32,9 @@ pub struct Config {
 }
 
 #[derive(Deserialize)]
+/// Sensitive configuration values.
+///
+/// See the [module-level documentation](index.html) for more information.
 pub struct Secrets {
     pub username: String,
     pub password: String,
@@ -21,10 +42,8 @@ pub struct Secrets {
     pub admins: Vec<String>,
 }
 
-pub struct PriceList {
-    pub simple: HashMap<ItemDefinitionIdOwned, u32>,
-    pub modular: Vec<ModularItemPrice>,
-}
+/// Buy or sell prices for items.
+pub struct PriceList(pub HashMap<ItemDefinitionIdOwned, u32>);
 
 impl<'de> Deserialize<'de> for PriceList {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -35,128 +54,84 @@ impl<'de> Deserialize<'de> for PriceList {
     }
 }
 
+impl IntoIterator for PriceList {
+    type Item = (ItemDefinitionIdOwned, u32);
+    type IntoIter = hash_map::IntoIter<ItemDefinitionIdOwned, u32>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a PriceList {
+    type Item = (&'a ItemDefinitionIdOwned, &'a u32);
+    type IntoIter = hash_map::Iter<'a, ItemDefinitionIdOwned, u32>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter()
+    }
+}
+
 pub struct PriceListVisitor;
 
 impl<'de> Visitor<'de> for PriceListVisitor {
     type Value = PriceList;
 
     fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-        formatter.write_str("a map with simple and/or modular keys")
+        formatter.write_str("a map with simple and/or modular keys: Material|primary|secondary")
     }
 
     fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
     where
         A: serde::de::MapAccess<'de>,
     {
-        let mut simple = None;
-        let mut modular = None;
+        let mut prices = HashMap::new();
 
-        while let Some(key) = map.next_key::<String>()? {
-            match key.as_str() {
-                "simple" => {
-                    let simple_prices_with_item_string =
-                        map.next_value::<HashMap<String, u32>>()?;
-                    let simple_prices_with_item_id = simple_prices_with_item_string
-                        .into_iter()
-                        .map(|(mut key, value)| {
-                            key.insert_str(0, "common.items.");
+        while let Some((key, value)) = map.next_entry::<String, u32>()? {
+            let item_id = match key.splitn(3, '|').collect::<Vec<&str>>().as_slice() {
+                [material, primary, secondary] => {
+                    let material = material.parse::<Material>().map_err(de::Error::custom)?;
+                    let mut primary = primary.to_string();
+                    let mut secondary = secondary.to_string();
 
-                            (ItemDefinitionIdOwned::Simple(key), value)
-                        })
-                        .collect();
+                    primary.insert_str(0, "common.items.modular.weapon.primary.");
+                    secondary.insert_str(0, "common.items.modular.weapon.secondar.");
 
-                    simple = Some(simple_prices_with_item_id);
+                    let material = ItemDefinitionIdOwned::Simple(
+                        material
+                            .asset_identifier()
+                            .ok_or_else(|| {
+                                de::Error::custom(format!(
+                                    "{:?} is not a valid material for modular crafted items",
+                                    material
+                                ))
+                            })?
+                            .to_string(),
+                    );
+                    let secondary = ItemDefinitionIdOwned::Compound {
+                        // This unwrap is safe because the ItemDefinitionId is always Simple.
+                        simple_base: primary,
+                        components: vec![material],
+                    };
+
+                    ItemDefinitionIdOwned::Modular {
+                        pseudo_base: "veloren.core.pseudo_items.modular.tool".to_string(),
+                        components: vec![secondary],
+                    }
                 }
-                "modular" => {
-                    modular = Some(map.next_value()?);
+                [simple] => {
+                    let mut simple = simple.to_string();
+
+                    simple.insert_str(0, "common.items.");
+
+                    ItemDefinitionIdOwned::Simple(simple)
                 }
-                _ => {
-                    return Err(serde::de::Error::unknown_field(
-                        &key,
-                        &["simple", "modular"],
-                    ));
-                }
-            }
+                _ => return Err(de::Error::custom("Invalid key format")),
+            };
+
+            prices.insert(item_id, value);
         }
 
-        Ok(PriceList {
-            simple: simple.ok_or_else(|| serde::de::Error::missing_field("simple"))?,
-            modular: modular.ok_or_else(|| serde::de::Error::missing_field("modular"))?,
-        })
-    }
-}
-
-#[derive(Debug, PartialEq, Eq, Hash)]
-pub struct ModularItemPrice {
-    pub material: Material,
-    pub primary: ItemDefinitionIdOwned,
-    pub secondary: ItemDefinitionIdOwned,
-    pub price: u32,
-}
-
-impl<'de> Deserialize<'de> for ModularItemPrice {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        deserializer.deserialize_map(ModularPriceVisitor)
-    }
-}
-
-struct ModularPriceVisitor;
-
-impl<'de> Visitor<'de> for ModularPriceVisitor {
-    type Value = ModularItemPrice;
-
-    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-        formatter.write_str("a map with material, primary, secondary and price keys")
-    }
-
-    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
-    where
-        A: serde::de::MapAccess<'de>,
-    {
-        let mut material = None;
-        let mut primary = None;
-        let mut secondary = None;
-        let mut price = None;
-
-        while let Some(key) = map.next_key::<String>()? {
-            match key.as_str() {
-                "material" => {
-                    material = Some(map.next_value()?);
-                }
-                "primary" => {
-                    let mut primary_string = map.next_value::<String>()?;
-
-                    primary_string.insert_str(0, "common.items.modular.weapon.primary.");
-
-                    primary = Some(ItemDefinitionIdOwned::Simple(primary_string));
-                }
-                "secondary" => {
-                    let mut secondary_string = map.next_value::<String>()?;
-
-                    secondary_string.insert_str(0, "common.items.modular.weapon.secondary.");
-
-                    secondary = Some(ItemDefinitionIdOwned::Simple(secondary_string));
-                }
-                "price" => {
-                    price = Some(map.next_value()?);
-                }
-                _ => {
-                    return Err(serde::de::Error::unknown_field(
-                        &key,
-                        &["material", "primary", "secondary", "price"],
-                    ));
-                }
-            }
-        }
-
-        Ok(ModularItemPrice {
-            material: material.ok_or_else(|| serde::de::Error::missing_field("material"))?,
-            primary: primary.ok_or_else(|| serde::de::Error::missing_field("primary"))?,
-            secondary: secondary.ok_or_else(|| serde::de::Error::missing_field("secondary"))?,
-            price: price.ok_or_else(|| serde::de::Error::missing_field("price"))?,
-        })
+        Ok(PriceList(prices))
     }
 }

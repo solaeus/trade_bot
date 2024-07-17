@@ -32,8 +32,8 @@ use veloren_common_net::sync::WorldSyncExt;
 
 use crate::config::PriceList;
 
-const COINS: &str = "common.items.utility.coins";
-const COINS_ID: ItemDefinitionId = ItemDefinitionId::Simple(Cow::Borrowed(COINS));
+const COINS: ItemDefinitionId =
+    ItemDefinitionId::Simple(Cow::Borrowed("common.items.utility.coins"));
 
 /// An active connection to the Veloren server that will attempt to run every time the `tick`
 /// function is called.
@@ -550,7 +550,7 @@ impl Bot {
             inventories.get(them).ok_or("Failed to find inventory")?,
         );
 
-        let coins_owned = COINS_ID.to_owned();
+        let coins_owned = COINS.to_owned();
         let get_my_coins = my_inventory.get_slot_of_item_by_def_id(&coins_owned);
         let get_their_coins = their_inventory.get_slot_of_item_by_def_id(&coins_owned);
 
@@ -562,18 +562,18 @@ impl Bot {
                     if let Some(item) = my_inventory.get(*slot_id) {
                         let item_id = item.item_definition_id();
 
-                        let item_value = if item_id == COINS_ID {
+                        let item_value = if item_id == COINS {
                             my_offered_coin_amount = *quantity as i32;
 
                             1
                         } else {
                             self.sell_prices
-                                .simple
+                                .0
                                 .get(&item_id)
                                 .map(|int| *int as i32)
                                 .unwrap_or_else(|| {
                                     self.buy_prices
-                                        .simple
+                                        .0
                                         .get(&item_id)
                                         .map(|int| 0 - *int as i32)
                                         .unwrap_or(i32::MIN)
@@ -592,18 +592,18 @@ impl Bot {
                     if let Some(item) = their_inventory.get(*slot_id) {
                         let item_id = item.item_definition_id();
 
-                        let item_value = if item_id == COINS_ID {
+                        let item_value = if item_id == COINS {
                             their_offered_coin_amount = *quantity as i32;
 
                             1
                         } else {
                             self.buy_prices
-                                .simple
+                                .0
                                 .get(&item_id)
                                 .map(|int| *int as i32)
                                 .unwrap_or_else(|| {
                                     self.sell_prices
-                                        .simple
+                                        .0
                                         .get(&item_id)
                                         .map(|int| 0 - *int as i32)
                                         .unwrap_or(0)
@@ -622,11 +622,11 @@ impl Bot {
             let item = my_inventory.get(*slot_id).ok_or("Failed to get item")?;
             let item_id = item.item_definition_id();
 
-            if item_id == COINS_ID {
+            if item_id == COINS {
                 continue;
             }
 
-            if !self.sell_prices.simple.contains_key(&item_id) {
+            if !self.sell_prices.0.contains_key(&item_id) {
                 my_item_to_remove = Some((slot_id, amount));
             }
         }
@@ -637,11 +637,11 @@ impl Bot {
             let item = their_inventory.get(*slot_id).ok_or("Failed to get item")?;
             let item_id = item.item_definition_id();
 
-            if item_id == COINS_ID {
+            if item_id == COINS {
                 continue;
             }
 
-            if !self.buy_prices.simple.contains_key(&item_id) {
+            if !self.buy_prices.0.contains_key(&item_id) {
                 their_item_to_remove = Some((slot_id, amount));
             }
         }
@@ -748,7 +748,7 @@ impl Bot {
             .to_string();
         let mut found = false;
 
-        for (item_id, price) in &self.buy_prices.simple {
+        for (item_id, price) in &self.buy_prices {
             let item_name = self.get_item_name(item_id.as_ref());
 
             if item_name.to_lowercase().contains(&search_term) {
@@ -784,47 +784,7 @@ impl Bot {
             }
         }
 
-        for modular_item_listing in &self.buy_prices.modular {
-            let material = ItemDefinitionId::Simple(Cow::Borrowed(
-                modular_item_listing
-                    .material
-                    .asset_identifier()
-                    .ok_or(format!(
-                        "{:?} is not a valid material for modular crafted items",
-                        modular_item_listing.material
-                    ))?,
-            ));
-            let primary = modular_item_listing.primary.as_ref();
-            let secondary = ItemDefinitionId::Compound {
-                // This unwrap is safe because the ItemDefinitionId is always Simple.
-                simple_base: primary.itemdef_id().unwrap(),
-                components: vec![material],
-            };
-            let item_id = ItemDefinitionId::Modular {
-                pseudo_base: "veloren.core.pseudo_items.modular.tool",
-                components: vec![secondary],
-            };
-            let item_name = self.get_item_name(item_id);
-
-            if item_name.to_lowercase().contains(&search_term) {
-                log::info!("Sending price info on {item_name} to {player_name}");
-
-                self.client.send_command(
-                    "tell".to_string(),
-                    vec![
-                        player_name.clone(),
-                        format!(
-                            "Buying {item_name} for {} coins.",
-                            modular_item_listing.price
-                        ),
-                    ],
-                );
-
-                found = true;
-            }
-        }
-
-        for (item_id, price) in &self.sell_prices.simple {
+        for (item_id, price) in &self.sell_prices {
             let item_name = self.get_item_name(item_id.as_ref());
 
             if item_name.to_lowercase().contains(&search_term) {
@@ -857,46 +817,6 @@ impl Bot {
 
                     found = true;
                 }
-            }
-        }
-
-        for modular_item_listing in &self.sell_prices.modular {
-            let material = ItemDefinitionId::Simple(Cow::Borrowed(
-                modular_item_listing
-                    .material
-                    .asset_identifier()
-                    .ok_or(format!(
-                        "{:?} is not a valid material for modular crafted items",
-                        modular_item_listing.material
-                    ))?,
-            ));
-            let primary = modular_item_listing.primary.as_ref();
-            let secondary = ItemDefinitionId::Compound {
-                // This unwrap is safe because the ItemDefinitionId is always Simple.
-                simple_base: primary.itemdef_id().unwrap(),
-                components: vec![material],
-            };
-            let item_id = ItemDefinitionId::Modular {
-                pseudo_base: "veloren.core.pseudo_items.modular.tool",
-                components: vec![secondary],
-            };
-            let item_name = self.get_item_name(item_id);
-
-            if item_name.to_lowercase().contains(&search_term) {
-                log::info!("Sending price info on {item_name} to {player_name}");
-
-                self.client.send_command(
-                    "tell".to_string(),
-                    vec![
-                        player_name.clone(),
-                        format!(
-                            "Selling {item_name} for {} coins.",
-                            modular_item_listing.price
-                        ),
-                    ],
-                );
-
-                found = true;
             }
         }
 

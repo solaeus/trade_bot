@@ -7,7 +7,6 @@ use std::{
     time::{Duration, Instant},
 };
 
-use hashbrown::HashMap;
 use tokio::runtime::Runtime;
 use vek::{Quaternion, Vec3};
 use veloren_client::{addr::ConnectionArgs, Client, Event as VelorenEvent, SiteInfoRich, WorldExt};
@@ -17,7 +16,6 @@ use veloren_common::{
     comp::{
         invite::InviteKind,
         item::{ItemDefinitionId, ItemDesc, ItemI18n, MaterialStatManifest},
-        slot::InvSlotId,
         tool::AbilityMap,
         ChatType, ControllerInputs, Item, Ori, Pos,
     },
@@ -57,7 +55,7 @@ pub struct Bot {
     sell_prices: PriceList,
     trade_mode: TradeMode,
 
-    previous_offer: Option<(HashMap<InvSlotId, u32>, HashMap<InvSlotId, u32>)>,
+    previous_trade: Option<PendingTrade>,
     last_trade_action: Instant,
     last_announcement: Instant,
     last_ouch: Instant,
@@ -153,7 +151,7 @@ impl Bot {
             buy_prices,
             sell_prices,
             trade_mode: TradeMode::Trade,
-            previous_offer: None,
+            previous_trade: None,
             last_trade_action: now,
             last_announcement: now,
             last_ouch: now,
@@ -256,7 +254,7 @@ impl Bot {
                         if self.is_user_admin(&sender)? && !self.client.is_trading() {
                             log::info!("Providing admin access");
 
-                            self.previous_offer = None;
+                            self.previous_trade = None;
                             self.trade_mode = TradeMode::AdminAccess;
 
                             self.client.send_invite(sender, InviteKind::Trade);
@@ -402,8 +400,8 @@ impl Bot {
 
                 match result {
                     TradeResult::Completed => {
-                        if let Some(offer) = &self.previous_offer {
-                            log::info!("Trade with {their_name}: {offer:?}",);
+                        if let Some(trade) = &self.previous_trade {
+                            log::info!("Trade with {their_name}: {:?}", trade.offers);
                         }
 
                         self.client.send_command(
@@ -531,8 +529,8 @@ impl Bot {
         };
 
         // If the trade hasn't changed, do nothing to avoid spamming the server.
-        if let Some(previous) = &self.previous_offer {
-            if (&previous.0, &previous.1) == (my_offer, their_offer) {
+        if let Some(previous) = &self.previous_trade {
+            if previous == &trade {
                 return Ok(());
             }
         }
@@ -627,7 +625,7 @@ impl Bot {
             }
 
             if !self.sell_prices.0.contains_key(&item_id) {
-                my_item_to_remove = Some((slot_id, amount));
+                my_item_to_remove = Some((*slot_id, *amount));
             }
         }
 
@@ -642,23 +640,25 @@ impl Bot {
             }
 
             if !self.buy_prices.0.contains_key(&item_id) {
-                their_item_to_remove = Some((slot_id, amount));
+                their_item_to_remove = Some((*slot_id, *amount));
             }
         }
 
         drop(inventories);
 
+        let phase = trade.phase;
+
         // Up until now there may have been an error, so we only update the previous offer now.
         // The trade action is infallible from here.
-        self.previous_offer = Some((my_offer.clone(), their_offer.clone()));
+        self.previous_trade = Some(trade);
 
         // Before running any actual trade logic, remove items that are not for sale or not being
         // purchased. End this trade action if an item was removed.
 
         if let Some((slot_id, quantity)) = my_item_to_remove {
             self.client.perform_trade_action(TradeAction::RemoveItem {
-                item: *slot_id,
-                quantity: *quantity,
+                item: slot_id,
+                quantity,
                 ours: true,
             });
 
@@ -667,8 +667,8 @@ impl Bot {
 
         if let Some((slot_id, quantity)) = their_item_to_remove {
             self.client.perform_trade_action(TradeAction::RemoveItem {
-                item: *slot_id,
-                quantity: *quantity,
+                item: slot_id,
+                quantity,
                 ours: false,
             });
 
@@ -685,8 +685,7 @@ impl Bot {
         // If the trade is balanced
         if difference == 0 {
             // Accept
-            self.client
-                .perform_trade_action(TradeAction::Accept(trade.phase));
+            self.client.perform_trade_action(TradeAction::Accept(phase));
         // If they are offering more
         } else if difference > 0 {
             // If they are offering coins
@@ -748,7 +747,7 @@ impl Bot {
             .to_string();
         let mut found = false;
 
-        for (item_id, price) in &self.buy_prices {
+        for (item_id, price) in &self.buy_prices.0 {
             let item_name = self.get_item_name(item_id.as_ref());
 
             if item_name.to_lowercase().contains(&search_term) {
@@ -784,7 +783,7 @@ impl Bot {
             }
         }
 
-        for (item_id, price) in &self.sell_prices {
+        for (item_id, price) in &self.sell_prices.0 {
             let item_name = self.get_item_name(item_id.as_ref());
 
             if item_name.to_lowercase().contains(&search_term) {

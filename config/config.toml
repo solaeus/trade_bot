@@ -39,7 +39,7 @@ orientation = 0
 "orichalcum|sword.katana|sword.medium" = 45_000
 "orichalcum|sword.katana|sword.short" = 45_000
 
-"orichalcum|sword.lonsgword|sword.long" = 45_000
+"orichalcum|sword.longsword|sword.long" = 45_000
 
 "orichalcum|sword.ornate|sword.long" = 45_000
 "orichalcum|sword.ornate|sword.medium" = 45_000
@@ -145,10 +145,10 @@ orientation = 0
 "eldwood|sceptre.ornate|sceptre.medium" = 20_000
 "eldwood|sceptre.sceptre|sceptre.medium" = 20_000
 
-"eldwood|sceptre.arbor|scpetre.light" = 20_000
-"eldwood|sceptre.cane|scpetre.light" = 20_000
-"eldwood|sceptre.crook|scpetre.light" = 20_000
-"eldwood|sceptre.crozier|scpetre.light" = 20_000
-"eldwood|sceptre.grandsceptre|scpetre.light" = 20_000
-"eldwood|sceptre.ornate|scpetre.light" = 20_000
-"eldwood|sceptre.sceptre|scpetre.light" = 20_000
+"eldwood|sceptre.arbor|sceptre.light" = 20_000
+"eldwood|sceptre.cane|sceptre.light" = 20_000
+"eldwood|sceptre.crook|sceptre.light" = 20_000
+"eldwood|sceptre.crozier|sceptre.light" = 20_000
+"eldwood|sceptre.grandsceptre|sceptre.light" = 20_000
+"eldwood|sceptre.ornate|sceptre.light" = 20_000
+"eldwood|sceptre.sceptre|sceptre.light" = 20_000

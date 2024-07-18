@@ -7,6 +7,7 @@ use std::{
     time::{Duration, Instant},
 };
 
+use hashbrown::HashMap;
 use tokio::runtime::Runtime;
 use vek::{Quaternion, Vec3};
 use veloren_client::{addr::ConnectionArgs, Client, Event as VelorenEvent, SiteInfoRich, WorldExt};
@@ -33,6 +34,13 @@ use crate::config::PriceList;
 const COINS: ItemDefinitionId =
     ItemDefinitionId::Simple(Cow::Borrowed("common.items.utility.coins"));
 
+/// TODO: Implement Display
+#[derive(Debug)]
+pub struct Reciept {
+    pub my_items: HashMap<String, u32>,
+    pub their_items: HashMap<String, u32>,
+}
+
 /// An active connection to the Veloren server that will attempt to run every time the `tick`
 /// function is called.
 ///
@@ -56,6 +64,7 @@ pub struct Bot {
     trade_mode: TradeMode,
 
     previous_trade: Option<PendingTrade>,
+    previous_trade_receipt: Option<Reciept>,
     last_trade_action: Instant,
     last_announcement: Instant,
     last_ouch: Instant,
@@ -152,6 +161,7 @@ impl Bot {
             sell_prices,
             trade_mode: TradeMode::Trade,
             previous_trade: None,
+            previous_trade_receipt: None,
             last_trade_action: now,
             last_announcement: now,
             last_ouch: now,
@@ -400,8 +410,8 @@ impl Bot {
 
                 match result {
                     TradeResult::Completed => {
-                        if let Some(trade) = &self.previous_trade {
-                            log::info!("Trade with {their_name}: {:?}", trade.offers);
+                        if let Some(reciept) = &self.previous_trade_receipt {
+                            log::info!("Trade with {their_name}: {:?}", reciept);
                         }
 
                         self.client.send_command(
@@ -528,13 +538,6 @@ impl Bot {
             )
         };
 
-        // If the trade hasn't changed, do nothing to avoid spamming the server.
-        if let Some(previous) = &self.previous_trade {
-            if previous == &trade {
-                return Ok(());
-            }
-        }
-
         let inventories = self.client.inventories();
         let me = self.client.entity();
         let them = self
@@ -551,6 +554,11 @@ impl Bot {
         let coins_owned = COINS.to_owned();
         let get_my_coins = my_inventory.get_slot_of_item_by_def_id(&coins_owned);
         let get_their_coins = their_inventory.get_slot_of_item_by_def_id(&coins_owned);
+
+        let mut receipt = Reciept {
+            my_items: HashMap::new(),
+            their_items: HashMap::new(),
+        };
 
         let (mut my_offered_coin_amount, mut their_offered_coin_amount) = (0, 0);
         let my_offered_items_value =
@@ -578,6 +586,9 @@ impl Bot {
                                 })
                         };
 
+                        let item_name = self.get_item_name(item_id);
+
+                        receipt.my_items.insert(item_name, *quantity);
                         acc.saturating_add(item_value.saturating_mul(*quantity as i32))
                     } else {
                         acc
@@ -608,12 +619,16 @@ impl Bot {
                                 })
                         };
 
+                        let item_name = self.get_item_name(item_id);
+
+                        receipt.their_items.insert(item_name, *quantity);
                         acc.saturating_add(item_value.saturating_mul(*quantity as i32))
                     } else {
                         acc
                     }
                 });
 
+        self.previous_trade_receipt = Some(receipt);
         let mut my_item_to_remove = None;
 
         for (slot_id, amount) in my_offer {
@@ -648,8 +663,16 @@ impl Bot {
 
         let phase = trade.phase;
 
-        // Up until now there may have been an error, so we only update the previous offer now.
-        // The trade action is infallible from here.
+        // Up until now there may have been an error, so we only update and check the previous
+        // offer now. The trade action is infallible from here.
+
+        // If the trade hasn't changed, do nothing to avoid spamming the server.
+        if let Some(previous) = &self.previous_trade {
+            if previous == &trade {
+                return Ok(());
+            }
+        }
+
         self.previous_trade = Some(trade);
 
         // Before running any actual trade logic, remove items that are not for sale or not being
@@ -745,40 +768,21 @@ impl Bot {
             .find_player_alias(target)
             .ok_or("Failed to find player name")?
             .to_string();
-        let mut found = false;
+        let mut buying = Vec::new();
+        let mut selling = Vec::new();
 
         for (item_id, price) in &self.buy_prices.0 {
             let item_name = self.get_item_name(item_id.as_ref());
 
             if item_name.to_lowercase().contains(&search_term) {
-                log::info!("Sending price info on {item_name} to {player_name}");
-
-                self.client.send_command(
-                    "tell".to_string(),
-                    vec![
-                        player_name.clone(),
-                        format!("Buying {item_name} for {price} coins."),
-                    ],
-                );
-
-                found = true;
+                buying.push((item_name, price));
 
                 continue;
             }
 
             if let Some(item_id_string) = item_id.as_ref().itemdef_id() {
                 if item_id_string.to_lowercase().contains(&search_term) {
-                    log::info!("Sending price info on {item_id_string} to {player_name}");
-
-                    self.client.send_command(
-                        "tell".to_string(),
-                        vec![
-                            player_name.clone(),
-                            format!("Buying {item_id_string} for {price} coins."),
-                        ],
-                    );
-
-                    found = true;
+                    buying.push((item_name, price));
                 }
             }
         }
@@ -787,39 +791,21 @@ impl Bot {
             let item_name = self.get_item_name(item_id.as_ref());
 
             if item_name.to_lowercase().contains(&search_term) {
-                log::info!("Sending price info on {item_name} to {player_name}");
-
-                self.client.send_command(
-                    "tell".to_string(),
-                    vec![
-                        player_name.clone(),
-                        format!("Selling {item_name} for {price} coins."),
-                    ],
-                );
-
-                found = true;
+                selling.push((item_name, price));
 
                 continue;
             }
 
             if let Some(item_id_string) = item_id.as_ref().itemdef_id() {
                 if item_id_string.to_lowercase().contains(&search_term) {
-                    log::info!("Sending price info on {item_id_string} to {player_name}");
-
-                    self.client.send_command(
-                        "tell".to_string(),
-                        vec![
-                            player_name.clone(),
-                            format!("Selling {item_id_string} for {price} coins."),
-                        ],
-                    );
-
-                    found = true;
+                    selling.push((item_name, price));
                 }
             }
         }
 
-        if !found {
+        let total_found = buying.len() + selling.len();
+
+        if total_found == 0 {
             log::info!("Found no price for \"{original_search_term}\" for {player_name}");
 
             self.client.send_command(
@@ -827,6 +813,48 @@ impl Bot {
                 vec![
                     player_name,
                     format!("I don't have a price for {original_search_term}."),
+                ],
+            );
+
+            return Ok(());
+        }
+
+        if total_found > 10 {
+            log::info!(
+                "Found {total_found} prices for \"{original_search_term}\" for {player_name}, not sending."
+            );
+
+            self.client.send_command(
+                "tell".to_string(),
+                vec![
+                    player_name,
+                    format!(
+                        "I found {total_found} prices for {original_search_term}. Please be more specific."
+                    ),
+                ],
+            );
+
+            return Ok(());
+        }
+
+        log::info!("Found {total_found} prices for \"{original_search_term}\" for {player_name}, sending prices.");
+
+        for (item_name, price) in buying {
+            self.client.send_command(
+                "tell".to_string(),
+                vec![
+                    player_name.clone(),
+                    format!("Buying {item_name} for {price} coins."),
+                ],
+            );
+        }
+
+        for (item_name, price) in selling {
+            self.client.send_command(
+                "tell".to_string(),
+                vec![
+                    player_name.clone(),
+                    format!("Selling {item_name} for {price} coins."),
                 ],
             );
         }

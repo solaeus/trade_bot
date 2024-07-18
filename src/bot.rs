@@ -34,6 +34,11 @@ use crate::config::PriceList;
 const COINS: ItemDefinitionId =
     ItemDefinitionId::Simple(Cow::Borrowed("common.items.utility.coins"));
 
+const CLIENT_TPS: Duration = Duration::from_millis(33);
+const TRADE_ACTION_DELAY: Duration = Duration::from_millis(300);
+const ACCOUNCEMENT_DELAY: Duration = Duration::from_mins(45);
+const OUCH_DELAY: Duration = Duration::from_secs(2);
+
 /// TODO: Implement Display
 #[derive(Debug)]
 pub struct Reciept {
@@ -91,7 +96,7 @@ impl Bot {
         log::info!("Connecting to veloren");
 
         let mut client = connect_to_veloren(game_server, auth_server, &username, password)?;
-        let mut clock = Clock::new(Duration::from_secs_f64(1.0 / 30.0));
+        let mut clock = Clock::new(CLIENT_TPS);
 
         client.load_character_list();
 
@@ -192,7 +197,7 @@ impl Bot {
             self.handle_veloren_event(event)?;
         }
 
-        if self.last_trade_action.elapsed() > Duration::from_millis(300) {
+        if self.last_trade_action.elapsed() > TRADE_ACTION_DELAY {
             self.client.respawn();
             self.handle_position_and_orientation()?;
             self.handle_lantern();
@@ -232,7 +237,7 @@ impl Bot {
                 }
             }
 
-            if self.last_announcement.elapsed() > Duration::from_mins(45) {
+            if self.last_announcement.elapsed() > ACCOUNCEMENT_DELAY {
                 self.handle_announcement()?;
 
                 self.last_announcement = Instant::now();
@@ -372,7 +377,7 @@ impl Bot {
                 ..
             }) => {
                 if let Some(uid) = self.client.uid() {
-                    if uid == target && self.last_ouch.elapsed() > Duration::from_secs(2) {
+                    if uid == target && self.last_ouch.elapsed() > OUCH_DELAY {
                         self.client
                             .send_command("say".to_string(), vec!["Ouch!".to_string()]);
 
@@ -388,7 +393,7 @@ impl Bot {
                 if let Some(uid) = self.client.uid() {
                     if uid == info.target
                         && info.amount.is_sign_negative()
-                        && self.last_ouch.elapsed() > Duration::from_secs(1)
+                        && self.last_ouch.elapsed() > OUCH_DELAY
                     {
                         self.client
                             .send_command("say".to_string(), vec!["That hurt!".to_string()]);

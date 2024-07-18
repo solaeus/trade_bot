@@ -77,24 +77,17 @@ impl<'de> Visitor<'de> for PriceListVisitor {
                     primary.insert_str(0, "common.items.modular.weapon.primary.");
                     secondary.insert_str(0, "common.items.modular.weapon.secondary.");
 
-                    let material = ItemDefinitionIdOwned::Simple(
-                        material
-                            .asset_identifier()
-                            .ok_or_else(|| {
-                                de::Error::custom(format!(
-                                    "{:?} is not a valid material for modular crafted items",
-                                    material
-                                ))
-                            })?
-                            .to_string(),
-                    );
-
                     ItemDefinitionIdOwned::Modular {
                         pseudo_base: "veloren.core.pseudo_items.modular.tool".to_string(),
-                        components: vec![ItemDefinitionIdOwned::Compound {
-                            simple_base: primary,
-                            components: vec![ItemDefinitionIdOwned::Simple(secondary), material],
-                        }],
+                        components: vec![
+                            ItemDefinitionIdOwned::Compound {
+                                simple_base: primary,
+                                components: vec![ItemDefinitionIdOwned::Simple(
+                                    material.asset_identifier().unwrap().to_string(),
+                                )],
+                            },
+                            ItemDefinitionIdOwned::Simple(secondary),
+                        ],
                     }
                 }
                 [simple] => {

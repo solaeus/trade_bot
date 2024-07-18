@@ -7,4 +7,148 @@ orientation = 0
 
 [sell_prices]
 "consumable.potion_minor" = 150
-"iron|sword.greatsword|sword.long" = 1_000
+
+# Modular Weapons
+## Axes
+"orichalcum|axe.axe|axe.long" = 45_000
+"orichalcum|axe.axe|axe.medium" = 45_000
+"orichalcum|axe.axe|axe.short" = 45_000
+
+"orichalcum|axe.greataxe|axe.long" = 45_000
+
+"orichalcum|axe.poleaxe|axe.long" = 45_000
+
+"orichalcum|axe.battleaxe|axe.long" = 45_000
+"orichalcum|axe.battleaxe|axe.medium" = 45_000
+"orichalcum|axe.battleaxe|axe.short" = 45_000
+
+"orichalcum|axe.jagged|axe.long" = 45_000
+"orichalcum|axe.jagged|axe.medium" = 45_000
+"orichalcum|axe.jagged|axe.short" = 45_000
+
+"orichalcum|axe.labrys|axe.long" = 45_000
+
+"orichalcum|axe.ornate|axe.long" = 45_000
+"orichalcum|axe.ornate|axe.medium" = 45_000
+"orichalcum|axe.ornate|axe.short" = 45_000
+
+## Swords
+"orichalcum|sword.greatsword|sword.long" = 45_000
+
+"orichalcum|sword.katana|sword.long" = 45_000
+"orichalcum|sword.katana|sword.medium" = 45_000
+"orichalcum|sword.katana|sword.short" = 45_000
+
+"orichalcum|sword.lonsgword|sword.long" = 45_000
+
+"orichalcum|sword.ornate|sword.long" = 45_000
+"orichalcum|sword.ornate|sword.medium" = 45_000
+"orichalcum|sword.ornate|sword.short" = 45_000
+
+"orichalcum|sword.sabre|sword.long" = 45_000
+"orichalcum|sword.sabre|sword.medium" = 45_000
+"orichalcum|sword.sabre|sword.short" = 45_000
+
+"orichalcum|sword.sawblade|sword.long" = 45_000
+"orichalcum|sword.sawblade|sword.medium" = 45_000
+"orichalcum|sword.sawblade|sword.short" = 45_000
+
+"orichalcum|sword.zweihander|sword.long" = 45_000
+
+## Hammers
+"orichalcum|hammer.hammer|hammer.long" = 45_000
+"orichalcum|hammer.hammer|hammer.medium" = 45_000
+"orichalcum|hammer.hammer|hammer.short" = 45_000
+
+"orichalcum|hammer.ornate|hammer.long" = 45_000
+"orichalcum|hammer.ornate|hammer.medium" = 45_000
+"orichalcum|hammer.ornate|hammer.short" = 45_000
+
+"orichalcum|hammer.greathammer|hammer.long" = 45_000
+
+"orichalcum|hammer.maul|hammer.long" = 45_000
+
+"orichalcum|hammer.warhammer|hammer.long" = 45_000
+"orichalcum|hammer.warhammer|hammer.medium" = 45_000
+"orichalcum|hammer.warhammer|hammer.short" = 45_000
+
+"orichalcum|hammer.spikedmace|hammer.long" = 45_000
+"orichalcum|hammer.spikedmace|hammer.medium" = 45_000
+"orichalcum|hammer.spikedmace|hammer.short" = 45_000
+
+"orichalcum|hammer.greatmace|hammer.long" = 45_000
+
+## Bows
+"eldwood|bow.bow|bow.long" = 20_000
+"eldwood|bow.composite|bow.long" = 20_000
+"eldwood|bow.greatbow|bow.long" = 20_000
+"eldwood|bow.longbow|bow.long" = 20_000
+"eldwood|bow.ornate|bow.long" = 20_000
+"eldwood|bow.shortbow|bow.long" = 20_000
+"eldwood|bow.warbow|bow.long" = 20_000
+
+"eldwood|bow.bow|bow.medium" = 20_000
+"eldwood|bow.composite|bow.medium" = 20_000
+"eldwood|bow.greatbow|bow.medium" = 20_000
+"eldwood|bow.longbow|bow.medium" = 20_000
+"eldwood|bow.ornate|bow.medium" = 20_000
+"eldwood|bow.shortbow|bow.medium" = 20_000
+"eldwood|bow.warbow|bow.medium" = 20_000
+
+"eldwood|bow.bow|bow.short" = 20_000
+"eldwood|bow.composite|bow.short" = 20_000
+"eldwood|bow.greatbow|bow.short" = 20_000
+"eldwood|bow.longbow|bow.short" = 20_000
+"eldwood|bow.ornate|bow.short" = 20_000
+"eldwood|bow.shortbow|bow.short" = 20_000
+"eldwood|bow.warbow|bow.short" = 20_000
+
+## Staffs
+"eldwood|staff.brand|staff.heavy" = 20_000
+"eldwood|staff.grandstaff|staff.heavy" = 20_000
+"eldwood|staff.longpole|staff.heavy" = 20_000
+"eldwood|staff.ornate|staff.heavy" = 20_000
+"eldwood|staff.pole|staff.heavy" = 20_000
+"eldwood|staff.rod|staff.heavy" = 20_000
+"eldwood|staff.staff|staff.heavy" = 20_000
+
+"eldwood|staff.brand|staff.medium" = 20_000
+"eldwood|staff.grandstaff|staff.medium" = 20_000
+"eldwood|staff.longpole|staff.medium" = 20_000
+"eldwood|staff.ornate|staff.medium" = 20_000
+"eldwood|staff.pole|staff.medium" = 20_000
+"eldwood|staff.rod|staff.medium" = 20_000
+"eldwood|staff.staff|staff.medium" = 20_000
+
+"eldwood|staff.brand|staff.light" = 20_000
+"eldwood|staff.grandstaff|staff.light" = 20_000
+"eldwood|staff.longpole|staff.light" = 20_000
+"eldwood|staff.ornate|staff.light" = 20_000
+"eldwood|staff.pole|staff.light" = 20_000
+"eldwood|staff.rod|staff.light" = 20_000
+"eldwood|staff.staff|staff.light" = 20_000
+
+## Sceptres
+"eldwood|sceptre.arbor|sceptre.heavy" = 20_000
+"eldwood|sceptre.cane|sceptre.heavy" = 20_000
+"eldwood|sceptre.crook|sceptre.heavy" = 20_000
+"eldwood|sceptre.crozier|sceptre.heavy" = 20_000
+"eldwood|sceptre.grandsceptre|sceptre.heavy" = 20_000
+"eldwood|sceptre.ornate|sceptre.heavy" = 20_000
+"eldwood|sceptre.sceptre|sceptre.heavy" = 20_000
+
+"eldwood|sceptre.arbor|sceptre.medium" = 20_000
+"eldwood|sceptre.cane|sceptre.medium" = 20_000
+"eldwood|sceptre.crook|sceptre.medium" = 20_000
+"eldwood|sceptre.crozier|sceptre.medium" = 20_000
+"eldwood|sceptre.grandsceptre|sceptre.medium" = 20_000
+"eldwood|sceptre.ornate|sceptre.medium" = 20_000
+"eldwood|sceptre.sceptre|sceptre.medium" = 20_000
+
+"eldwood|sceptre.arbor|scpetre.light" = 20_000
+"eldwood|sceptre.cane|scpetre.light" = 20_000
+"eldwood|sceptre.crook|scpetre.light" = 20_000
+"eldwood|sceptre.crozier|scpetre.light" = 20_000
+"eldwood|sceptre.grandsceptre|scpetre.light" = 20_000
+"eldwood|sceptre.ornate|scpetre.light" = 20_000
+"eldwood|sceptre.sceptre|scpetre.light" = 20_000

@@ -100,14 +100,15 @@ announcement = "I love cheese! I am at {location}."
 # The buy_prices and sell_prices tables are required. The keys are item definition IDs and the
 # values are the price in coins. You may type in-game "/give_item common.items." and press Tab to
 # explore the item definition IDs. Then just leave off the "common.items." part in this file.
-
 [buy_prices]
 "food.cheese" = 50
 
 [sell_prices]
 "consumable.potion_minor" = 150
 
-# Modular weapons listed by that components: "material|primary|secondary".
+# Modular weapons are listed by their components: "material|primary|secondary". The material is
+# snake_cased and you can omit the "common.items.modular.weapon.[primary|secondary]" from the
+# modular components.
 "iron|sword.greatsword|sword.long" = 1_000
 ```
 

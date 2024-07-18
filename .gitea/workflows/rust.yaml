@@ -1,0 +1,32 @@
+  name: Rust                                                                                                                
+                                                                                                                                         
+  on:                                                                                                                                    
+    push:                                                                                                                                
+      branches:                                                                                                                          
+        - dev
+        - main                                                                                                                          
+    pull_request:                                                                                                                        
+      branches:                                                                                                                          
+        - dev
+        - main
+                                                                                                                                         
+  jobs:                                                                                                                                  
+    build:                                                                                                                               
+      runs-on: ubuntu-latest                                                                                                             
+                                                                                                                                         
+      steps:                                                                                                                             
+      - name: Checkout code                                                                                                              
+        uses: actions/checkout@v2                                                                                                        
+                                                                                                                                         
+      - name: Set up Rust                                                                                                                
+        uses: actions-rs/toolchain@v1                                                                                                   
+                                                                                                                                                                                                                                                                    
+      - name: Run cargo clippy                                                                                                           
+        run: cargo clippy -- -D warnings                                                                                                 
+                                                                                                                                         
+      - name: Check for errors                                                                                                           
+        run: |                                                                                                                           
+          if [ "$?" -ne 0 ]; then                                                                                                        
+            echo "Check failed"                                                                                                          
+            exit 1                                                                                                                       
+          fi     

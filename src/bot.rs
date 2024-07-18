@@ -8,6 +8,7 @@ use std::{
 };
 
 use hashbrown::HashMap;
+use log::{debug, info};
 use tokio::runtime::Runtime;
 use vek::{Quaternion, Vec3};
 use veloren_client::{addr::ConnectionArgs, Client, Event as VelorenEvent, SiteInfoRich, WorldExt};
@@ -83,7 +84,7 @@ impl Bot {
         orientation: Option<f32>,
         announcement: Option<String>,
     ) -> Result<Self, String> {
-        log::info!("Connecting to veloren");
+        info!("Connecting to veloren");
 
         let mut client = connect_to_veloren(game_server, auth_server, &username, password)?;
         let mut clock = Clock::new(CLIENT_TPS);
@@ -107,7 +108,7 @@ impl Bot {
             .id
             .ok_or("Failed to get character ID")?;
 
-        log::info!("Selecting a character");
+        info!("Selecting a character");
 
         // This loop waits and retries requesting the character in the case that the character has
         // logged out too recently.
@@ -218,9 +219,9 @@ impl Bot {
                 self.sort_count -= 1;
 
                 if self.sort_count == 0 {
-                    log::info!("Sorted inventory, finished")
+                    debug!("Sorted inventory, finished")
                 } else {
-                    log::info!("Sorted inventory, {} more times to go", self.sort_count);
+                    debug!("Sorted inventory, {} more times to go", self.sort_count);
                 }
             }
 
@@ -254,7 +255,7 @@ impl Bot {
                 let correction_message = match command {
                     "admin_access" => {
                         if self.is_user_admin(&sender)? && !self.client.is_trading() {
-                            log::info!("Providing admin access");
+                            info!("Providing admin access");
 
                             self.previous_trade = None;
                             self.trade_mode = TradeMode::AdminAccess;
@@ -330,13 +331,13 @@ impl Bot {
                                     .parse::<u8>()
                                     .map_err(|error| error.to_string())?;
 
-                                log::info!("Sorting inventory {sort_count} times");
+                                debug!("Sorting inventory {sort_count} times");
 
                                 self.sort_count = sort_count;
                             } else {
                                 self.client.sort_inventory();
 
-                                log::info!("Sorting inventory once");
+                                debug!("Sorting inventory once");
                             }
 
                             None
@@ -403,7 +404,7 @@ impl Bot {
                 match result {
                     TradeResult::Completed => {
                         if let Some(reciept) = &self.previous_trade_receipt {
-                            log::info!("Trade with {their_name}: {:?}", reciept);
+                            info!("Trade with {their_name}: {:?}", reciept);
                         }
 
                         self.client.send_command(
@@ -411,14 +412,14 @@ impl Bot {
                             vec!["Thank you for trading with me!".to_string()],
                         );
                     }
-                    TradeResult::Declined => log::info!("Trade with {their_name} declined"),
+                    TradeResult::Declined => info!("Trade with {their_name} declined"),
                     TradeResult::NotEnoughSpace => {
-                        log::info!("Trade with {their_name} failed: not enough space")
+                        info!("Trade with {their_name} failed: not enough space")
                     }
                 }
 
                 if let TradeMode::AdminAccess = self.trade_mode {
-                    log::info!("End of admin access for {their_name}");
+                    info!("End of admin access for {their_name}");
 
                     self.trade_mode = TradeMode::Trade;
                 }
@@ -435,7 +436,7 @@ impl Bot {
     /// is always made. If an announcement was provided when the bot was created, it will make it
     /// in /world.
     fn handle_announcement(&mut self) -> Result<(), String> {
-        log::info!("Making an announcement");
+        debug!("Making an announcement");
 
         self.client.send_command(
             "region".to_string(),
@@ -507,10 +508,10 @@ impl Bot {
     /// 4. If the trade is balanced, accept it.
     /// 5. If the total value of their offer is greater than the total value of my offer:
     ///     1. If they are offering coins, remove them to balance.
-    ///     2. If they are not offering coins, add mine to balance.
+    ///     2. If they are not offering coins, add mine to balance if I have enough.
     /// 6. If the total value of my offer is greater than the total value of their offer:
     ///     1. If I am offering coins, remove them to balance.
-    ///     2. If I am not offering coins, add theirs to balance.
+    ///     2. If I am not offering coins, add theirs to balance if they have enough.
     /// 7. If the trade is still unbalanced, tell them the value of the greater offer and the
     ///    other party's total coin amount.
     ///
@@ -680,7 +681,7 @@ impl Bot {
         // offer now. The trade action is infallible from here.
         self.previous_trade = Some(trade);
 
-        log::info!("Performing trade action with {their_name}");
+        debug!("Performing trade action with {their_name}");
 
         // Before running any actual trade logic, remove items that are not for sale or not being
         // purchased. End this trade action if an item was removed.
@@ -709,7 +710,8 @@ impl Bot {
 
         // The if/else statements below implement the bot's main feature: buying, selling and
         // trading items according to the values set in the configuration file. Coins are used to
-        // balance the value of the trade.
+        // balance the value of the trade. If there are not enough or no coins to balance the
+        // trade, a message is sent to the user.
 
         // If the trade is balanced
         if difference == 0 {
@@ -726,19 +728,18 @@ impl Bot {
             // If they are offering coins
             if their_offered_coin_amount > 0 {
                 if let Some(their_coins) = get_their_coins {
-                    if their_coin_amount >= difference as u32 {
-                        // Remove their coins to balance
-                        self.client.perform_trade_action(TradeAction::RemoveItem {
-                            item: their_coins,
-                            quantity: difference as u32,
-                            ours: false,
-                        });
+                    // Remove their coins to balance
+                    self.client.perform_trade_action(TradeAction::RemoveItem {
+                        item: their_coins,
+                        quantity: difference as u32,
+                        ours: false,
+                    });
 
-                        return Ok(());
-                    }
+                    return Ok(());
                 }
             // If they are not offering coins
             } else if let Some(my_coins) = get_my_coins {
+                // If I have enough coins
                 if my_coin_amount >= difference as u32 {
                     // Add my coins to balanace
                     self.client.perform_trade_action(TradeAction::AddItem {
@@ -760,6 +761,8 @@ impl Bot {
                     ),
                 ],
             );
+
+            return Ok(());
         }
 
         // If I am offering more
@@ -767,19 +770,18 @@ impl Bot {
             // If I am offering coins
             if my_offered_coin_amount > 0 {
                 if let Some(my_coins) = get_my_coins {
-                    if my_coin_amount >= difference.unsigned_abs() {
-                        // Remove my coins to balance
-                        self.client.perform_trade_action(TradeAction::RemoveItem {
-                            item: my_coins,
-                            quantity: difference.unsigned_abs(),
-                            ours: true,
-                        });
+                    // Remove my coins to balance
+                    self.client.perform_trade_action(TradeAction::RemoveItem {
+                        item: my_coins,
+                        quantity: difference.unsigned_abs(),
+                        ours: true,
+                    });
 
-                        return Ok(());
-                    }
+                    return Ok(());
                 }
             // If I am not offering coins
             } else if let Some(their_coins) = get_their_coins {
+                // If they have enough coins
                 if their_coin_amount >= difference.unsigned_abs() {
                     // Add their coins to balance
                     self.client.perform_trade_action(TradeAction::AddItem {
@@ -791,8 +793,6 @@ impl Bot {
                     return Ok(());
                 }
             }
-
-            let their_name = self.find_player_alias(&their_uid).unwrap().clone();
 
             self.client.send_command(
                 "tell".to_string(),
@@ -858,7 +858,7 @@ impl Bot {
         let total_found = buying.len() + selling.len();
 
         if total_found == 0 {
-            log::info!("Found no price for \"{original_search_term}\" for {player_name}");
+            debug!("Found no price for \"{original_search_term}\" for {player_name}");
 
             self.client.send_command(
                 "tell".to_string(),
@@ -872,7 +872,7 @@ impl Bot {
         }
 
         if total_found > 10 {
-            log::info!(
+            debug!(
                 "Found {total_found} prices for \"{original_search_term}\" for {player_name}, not sending."
             );
 
@@ -889,7 +889,7 @@ impl Bot {
             return Ok(());
         }
 
-        log::info!("Found {total_found} prices for \"{original_search_term}\" for {player_name}, sending prices.");
+        debug!("Found {total_found} prices for \"{original_search_term}\" for {player_name}, sending prices.");
 
         for (item_name, price) in buying {
             self.client.send_command(
@@ -934,6 +934,8 @@ impl Bot {
     fn handle_position_and_orientation(&mut self) -> Result<(), String> {
         if let Some(current_position) = self.client.current::<Pos>() {
             if current_position != self.position {
+                debug!("Updating position to {}", self.position.0);
+
                 let entity = self.client.entity();
                 let ecs = self.client.state_mut().ecs();
                 let mut position_state = ecs.write_storage::<Pos>();
@@ -946,6 +948,8 @@ impl Bot {
 
         if let Some(current_orientation) = self.client.current::<Ori>() {
             if current_orientation != self.orientation {
+                debug!("Updating orientation to {:?}", self.orientation);
+
                 let entity = self.client.entity();
                 let ecs = self.client.state_mut().ecs();
                 let mut orientation_state = ecs.write_storage::<Ori>();

@@ -943,7 +943,10 @@ impl Bot {
     fn handle_position_and_orientation(&mut self) -> Result<(), String> {
         if let Some(current_position) = self.client.current::<Pos>() {
             if current_position != self.position {
-                debug!("Updating position to {}", self.position.0);
+                debug!(
+                    "Updating position from {} to {}",
+                    current_position.0, self.position.0
+                );
 
                 let entity = self.client.entity();
                 let ecs = self.client.state_mut().ecs();
@@ -957,7 +960,10 @@ impl Bot {
 
         if let Some(current_orientation) = self.client.current::<Ori>() {
             if current_orientation != self.orientation {
-                debug!("Updating orientation to {:?}", self.orientation);
+                debug!(
+                    "Updating orientation from {:?} to {:?}",
+                    current_orientation, self.orientation
+                );
 
                 let entity = self.client.entity();
                 let ecs = self.client.state_mut().ecs();

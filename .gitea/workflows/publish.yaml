@@ -1,0 +1,20 @@
+name: Podman Image CI
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman
+      - name: Build the image
+        run: podman build --tag git.jeffa.io/jeff/trade_bot .
+      - name: Push the image
+        run: podman push git.jeffa.io/jeff/trade_bot

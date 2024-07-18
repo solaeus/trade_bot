@@ -6,6 +6,7 @@ orientation = 0
 "iron|sword.greatsword|sword.long" = 1_000
 
 [sell_prices]
+"food.cheese" = 1_000_000
 "consumable.potion_minor" = 150
 
 # Modular Weapons

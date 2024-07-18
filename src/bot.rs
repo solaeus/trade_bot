@@ -33,7 +33,6 @@ use crate::config::PriceList;
 
 const COINS: ItemDefinitionId =
     ItemDefinitionId::Simple(Cow::Borrowed("common.items.utility.coins"));
-
 const CLIENT_TPS: Duration = Duration::from_millis(33);
 const TRADE_ACTION_DELAY: Duration = Duration::from_millis(300);
 const ACCOUNCEMENT_DELAY: Duration = Duration::from_mins(45);
@@ -41,8 +40,6 @@ const OUCH_DELAY: Duration = Duration::from_secs(2);
 
 /// An active connection to the Veloren server that will attempt to run every time the `tick`
 /// function is called.
-///
-/// See the [module-level documentation](index.html) for more information.
 pub struct Bot {
     username: String,
     position: Pos,
@@ -132,10 +129,7 @@ impl Bot {
         let position = if let Some(coords) = position {
             Pos(coords.into())
         } else {
-            client
-                .position()
-                .map(|coords| Pos(coords))
-                .ok_or("Failed to get position")?
+            client.position().map(Pos).ok_or("Failed to get position")?
         };
         let orientation = if let Some(orientation) = orientation {
             Ori::new(Quaternion::rotation_z(orientation.to_radians()))
@@ -303,7 +297,7 @@ impl Bot {
                     }
                     "price" => {
                         for item_name in split_content {
-                            self.send_price_info(&sender, &item_name)?;
+                            self.send_price_info(&sender, item_name)?;
                         }
 
                         None
@@ -725,8 +719,10 @@ impl Bot {
             self.client.perform_trade_action(TradeAction::Accept(phase));
 
             return Ok(());
-            // If they are offering more
-        } else if difference > 0 {
+        }
+
+        // If they are offering more
+        if difference > 0 {
             // If they are offering coins
             if their_offered_coin_amount > 0 {
                 if let Some(their_coins) = get_their_coins {
@@ -764,8 +760,10 @@ impl Bot {
                     ),
                 ],
             );
+        }
+
         // If I am offering more
-        } else if difference < 0 {
+        if difference < 0 {
             // If I am offering coins
             if my_offered_coin_amount > 0 {
                 if let Some(my_coins) = get_my_coins {

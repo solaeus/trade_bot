@@ -6,6 +6,8 @@ The bot is containerized and can be run without compiling or building anything. 
 can clone this repository and build the image yourself or build the binary directly with Cargo if
 you are familiar with Rust.
 
+![publish](https://git.jeffa.io/jeff/trade_bot/actions/workflows/publish.yaml/badge.svg)
+
 ## Warnings and Notices
 
 - This project is **not officially supported** by the Veloren team. It will connect to the official

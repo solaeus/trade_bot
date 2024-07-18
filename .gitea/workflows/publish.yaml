@@ -10,13 +10,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Install Podman
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y podman
       - name: Build the image
-        run: |
-          sudo mount --make-rshared /
-          podman build --tag git.jeffa.io/jeff/trade_bot .
+        run: docker build --tag git.jeffa.io/jeff/trade_bot .
       - name: Push the image
-        run: podman push git.jeffa.io/jeff/trade_bot
+        run: docker push git.jeffa.io/jeff/trade_bot

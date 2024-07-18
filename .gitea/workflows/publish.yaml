@@ -31,14 +31,19 @@ jobs:
             exit 1
           fi
   docker:
+
     runs-on: ubuntu-latest
-    needs: rust
     permissions:
       contents: read
       packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
       id-token: write
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       # Set up BuildKit Docker container builder to be able to build
       # multi-platform images and export cache
       # https://github.com/docker/setup-buildx-action
@@ -70,6 +75,8 @@ jobs:
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
           context: .
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ gitea.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

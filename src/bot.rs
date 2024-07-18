@@ -39,13 +39,6 @@ const TRADE_ACTION_DELAY: Duration = Duration::from_millis(300);
 const ACCOUNCEMENT_DELAY: Duration = Duration::from_mins(45);
 const OUCH_DELAY: Duration = Duration::from_secs(2);
 
-/// TODO: Implement Display
-#[derive(Debug)]
-pub struct Reciept {
-    pub my_items: HashMap<String, u32>,
-    pub their_items: HashMap<String, u32>,
-}
-
 /// An active connection to the Veloren server that will attempt to run every time the `tick`
 /// function is called.
 ///
@@ -953,6 +946,12 @@ impl Bot {
             }
         })
     }
+}
+
+#[derive(Debug)]
+pub struct Reciept {
+    pub my_items: HashMap<String, u32>,
+    pub their_items: HashMap<String, u32>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

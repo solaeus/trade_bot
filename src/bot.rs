@@ -163,7 +163,8 @@ impl Bot {
         })
     }
 
-    /// Run the bot for a single tick. This should be called in a loop.
+    /// Run the bot for a single tick. This should be called in a loop. Returns `true` if the loop
+    /// should continue running.
     ///
     /// There are three timers in this function:
     /// - The [Clock] runs the Veloren client. At **30 ticks per second** this timer is faster than
@@ -175,14 +176,18 @@ impl Bot {
     /// This function should be modified with care. In addition to being the bot's main loop, it
     /// also accepts incoming trade invites, which has a potential for error if the bot accepts an
     /// invite while in the wrong trade mode.
-    pub fn tick(&mut self) -> Result<(), String> {
+    pub fn tick(&mut self) -> Result<bool, String> {
         let veloren_events = self
             .client
             .tick(ControllerInputs::default(), self.clock.dt())
             .map_err(|error| format!("{error:?}"))?;
 
         for event in veloren_events {
-            self.handle_veloren_event(event)?;
+            let should_continue = self.handle_veloren_event(event)?;
+
+            if !should_continue {
+                return Ok(false);
+            }
         }
 
         if self.last_trade_action.elapsed() > TRADE_ACTION_DELAY {
@@ -236,17 +241,18 @@ impl Bot {
 
         self.clock.tick();
 
-        Ok(())
+        Ok(true)
     }
 
-    /// Consume and manage a client-side Veloren event.
-    fn handle_veloren_event(&mut self, event: VelorenEvent) -> Result<(), String> {
+    /// Consume and manage a client-side Veloren event. Returns a boolean indicating whether the
+    /// bot should continue processing events.
+    fn handle_veloren_event(&mut self, event: VelorenEvent) -> Result<bool, String> {
         match event {
             VelorenEvent::Chat(message) => {
                 let sender = if let ChatType::Tell(uid, _) = message.chat_type {
                     uid
                 } else {
-                    return Ok(());
+                    return Ok(true);
                 };
                 let content = message.content().as_plain().unwrap_or_default();
                 let mut split_content = content.split(' ');
@@ -375,7 +381,7 @@ impl Bot {
             }
             VelorenEvent::Outcome(Outcome::HealthChange { info, .. }) => {
                 if let Some(DamageSource::Buff(_)) = info.cause {
-                    return Ok(());
+                    return Ok(true);
                 }
 
                 if let Some(uid) = self.client.uid() {
@@ -424,10 +430,13 @@ impl Bot {
                     self.trade_mode = TradeMode::Trade;
                 }
             }
+            VelorenEvent::Disconnect => {
+                return Ok(false);
+            }
             _ => (),
         }
 
-        Ok(())
+        Ok(true)
     }
 
     /// Make the bot's trading and help accouncements

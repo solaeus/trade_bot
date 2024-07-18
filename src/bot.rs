@@ -517,6 +517,8 @@ impl Bot {
     /// 6. If the total value of my offer is greater than the total value of their offer:
     ///     1. If I am offering coins, remove them to balance.
     ///     2. If I am not offering coins, add theirs to balance.
+    /// 7. If the trade is still unbalanced, tell them the value of the greater offer and the
+    ///    other party's total coin amount.
     ///
     /// See the inline comments for more details.
     #[allow(clippy::comparison_chain)]
@@ -525,6 +527,7 @@ impl Bot {
             return Ok(());
         }
 
+        let phase = trade.phase;
         let my_offer_index = trade
             .which_party(self.client.uid().ok_or("Failed to get uid")?)
             .ok_or("Failed to get offer index")?;
@@ -535,6 +538,11 @@ impl Bot {
                 &trade.offers[their_offer_index],
             )
         };
+        let their_uid = trade.parties[their_offer_index];
+        let their_name = self
+            .find_player_alias(&their_uid)
+            .ok_or("Failed to find player name")?
+            .clone();
 
         let inventories = self.client.inventories();
         let me = self.client.entity();
@@ -552,6 +560,16 @@ impl Bot {
         let coins_owned = COINS.to_owned();
         let get_my_coins = my_inventory.get_slot_of_item_by_def_id(&coins_owned);
         let get_their_coins = their_inventory.get_slot_of_item_by_def_id(&coins_owned);
+        let my_coin_amount = if let Some(coins) = get_my_coins {
+            my_inventory.get(coins).unwrap().amount()
+        } else {
+            0
+        };
+        let their_coin_amount = if let Some(coins) = get_their_coins {
+            their_inventory.get(coins).unwrap().amount()
+        } else {
+            0
+        };
         let mut receipt = Reciept {
             my_items: HashMap::new(),
             their_items: HashMap::new(),
@@ -657,8 +675,6 @@ impl Bot {
 
         drop(inventories);
 
-        let phase = trade.phase;
-
         // If the trade hasn't changed, do nothing to avoid spamming the server.
         if let Some(previous) = &self.previous_trade {
             if previous == &trade {
@@ -669,6 +685,8 @@ impl Bot {
         // Up until now there may have been an error, so we only update and check the previous
         // offer now. The trade action is infallible from here.
         self.previous_trade = Some(trade);
+
+        log::info!("Performing trade action with {their_name}");
 
         // Before running any actual trade logic, remove items that are not for sale or not being
         // purchased. End this trade action if an item was removed.
@@ -697,8 +715,7 @@ impl Bot {
 
         // The if/else statements below implement the bot's main feature: buying, selling and
         // trading items according to the values set in the configuration file. Coins are used to
-        // balance the value of the trade. In the case that we try to add more coins than are
-        // available, the server will correct it by adding all of the available coins.
+        // balance the value of the trade.
 
         // If the trade is balanced
         if difference == 0 {
@@ -706,48 +723,88 @@ impl Bot {
 
             // Accept
             self.client.perform_trade_action(TradeAction::Accept(phase));
-        // If they are offering more
+
+            return Ok(());
+            // If they are offering more
         } else if difference > 0 {
             // If they are offering coins
             if their_offered_coin_amount > 0 {
                 if let Some(their_coins) = get_their_coins {
-                    // Remove their coins to balance
-                    self.client.perform_trade_action(TradeAction::RemoveItem {
-                        item: their_coins,
-                        quantity: difference as u32,
-                        ours: false,
-                    });
+                    if their_coin_amount >= difference as u32 {
+                        // Remove their coins to balance
+                        self.client.perform_trade_action(TradeAction::RemoveItem {
+                            item: their_coins,
+                            quantity: difference as u32,
+                            ours: false,
+                        });
+
+                        return Ok(());
+                    }
                 }
             // If they are not offering coins
             } else if let Some(my_coins) = get_my_coins {
-                // Add my coins to balanace
-                self.client.perform_trade_action(TradeAction::AddItem {
-                    item: my_coins,
-                    quantity: difference as u32,
-                    ours: true,
-                });
+                if my_coin_amount >= difference as u32 {
+                    // Add my coins to balanace
+                    self.client.perform_trade_action(TradeAction::AddItem {
+                        item: my_coins,
+                        quantity: difference as u32,
+                        ours: true,
+                    });
+
+                    return Ok(());
+                }
             }
+
+            self.client.send_command(
+                "tell".to_string(),
+                vec![
+                    their_name,
+                    format!(
+                        "The value of your offer is {their_offered_items_value} coins. I only have {my_coin_amount} coins.",
+                    ),
+                ],
+            );
         // If I am offering more
         } else if difference < 0 {
             // If I am offering coins
             if my_offered_coin_amount > 0 {
                 if let Some(my_coins) = get_my_coins {
-                    // Remove my coins to balance
-                    self.client.perform_trade_action(TradeAction::RemoveItem {
-                        item: my_coins,
-                        quantity: difference.unsigned_abs(),
-                        ours: true,
-                    });
+                    if my_coin_amount >= difference.unsigned_abs() {
+                        // Remove my coins to balance
+                        self.client.perform_trade_action(TradeAction::RemoveItem {
+                            item: my_coins,
+                            quantity: difference.unsigned_abs(),
+                            ours: true,
+                        });
+
+                        return Ok(());
+                    }
                 }
             // If I am not offering coins
             } else if let Some(their_coins) = get_their_coins {
-                // Add their coins to balance
-                self.client.perform_trade_action(TradeAction::AddItem {
-                    item: their_coins,
-                    quantity: difference.unsigned_abs(),
-                    ours: false,
-                });
+                if their_coin_amount >= difference.unsigned_abs() {
+                    // Add their coins to balance
+                    self.client.perform_trade_action(TradeAction::AddItem {
+                        item: their_coins,
+                        quantity: difference.unsigned_abs(),
+                        ours: false,
+                    });
+
+                    return Ok(());
+                }
             }
+
+            let their_name = self.find_player_alias(&their_uid).unwrap().clone();
+
+            self.client.send_command(
+                "tell".to_string(),
+                vec![
+                    their_name,
+                    format!(
+                        "The value of my offer is {my_offered_items_value} coins. You only have {their_coin_amount} coins.",
+                    ),
+                ],
+            );
         }
 
         Ok(())

@@ -7,9 +7,11 @@ use std::{env::var, fs::read_to_string};
 
 use bot::Bot;
 use config::{Config, Secrets};
+use env_logger::Env;
+use log::error;
 
 fn main() {
-    env_logger::init();
+    env_logger::Builder::from_env(Env::default().default_filter_or("debug")).init();
 
     let secrets = {
         let secrets_path =
@@ -47,6 +49,12 @@ fn main() {
     .expect("Failed to create bot");
 
     loop {
-        let _ = bot.tick().inspect_err(|error| log::error!("{error}"));
+        match bot.tick() {
+            Ok(true) => return,
+            Ok(false) => {}
+            Err(error) => {
+                error!("{error}");
+            }
+        }
     }
 }

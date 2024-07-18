@@ -554,7 +554,6 @@ impl Bot {
         let coins_owned = COINS.to_owned();
         let get_my_coins = my_inventory.get_slot_of_item_by_def_id(&coins_owned);
         let get_their_coins = their_inventory.get_slot_of_item_by_def_id(&coins_owned);
-
         let mut receipt = Reciept {
             my_items: HashMap::new(),
             their_items: HashMap::new(),
@@ -628,7 +627,6 @@ impl Bot {
                     }
                 });
 
-        self.previous_trade_receipt = Some(receipt);
         let mut my_item_to_remove = None;
 
         for (slot_id, amount) in my_offer {
@@ -663,9 +661,6 @@ impl Bot {
 
         let phase = trade.phase;
 
-        // Up until now there may have been an error, so we only update and check the previous
-        // offer now. The trade action is infallible from here.
-
         // If the trade hasn't changed, do nothing to avoid spamming the server.
         if let Some(previous) = &self.previous_trade {
             if previous == &trade {
@@ -673,6 +668,8 @@ impl Bot {
             }
         }
 
+        // Up until now there may have been an error, so we only update and check the previous
+        // offer now. The trade action is infallible from here.
         self.previous_trade = Some(trade);
 
         // Before running any actual trade logic, remove items that are not for sale or not being
@@ -707,6 +704,8 @@ impl Bot {
 
         // If the trade is balanced
         if difference == 0 {
+            self.previous_trade_receipt = Some(receipt);
+
             // Accept
             self.client.perform_trade_action(TradeAction::Accept(phase));
         // If they are offering more

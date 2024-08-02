@@ -848,21 +848,41 @@ impl Bot {
             }
         }
 
+        let inventories = self.client.inventories();
+        let my_inventory = inventories
+            .get(self.client.entity())
+            .ok_or("Failed to find inventory")?;
+
         for (item_id, price) in &self.sell_prices.0 {
-            let item_name = self.get_item_name(item_id.as_ref());
+            let item = Item::new_from_item_definition_id(
+                item_id.as_ref(),
+                &self.ability_map,
+                &self.material_manifest,
+            )
+            .map_err(|error| error.to_string())?;
+            let (item_name_i18n_id, _) = item.i18n(&self.item_i18n);
+            let item_name = self.localization.read().get_content(&item_name_i18n_id);
+            let item_inventory_slot = my_inventory.get_slot_of_item(&item);
+            let stock = if let Some(slot_id) = item_inventory_slot {
+                my_inventory.get(slot_id).unwrap().amount()
+            } else {
+                0
+            };
 
             if item_name.to_lowercase().contains(&search_term) {
-                selling.push((item_name, price));
+                selling.push((item_name, price, stock));
 
                 continue;
             }
 
             if let Some(item_id_string) = item_id.as_ref().itemdef_id() {
                 if item_id_string.to_lowercase().contains(&search_term) {
-                    selling.push((item_name, price));
+                    selling.push((item_name, price, stock));
                 }
             }
         }
+
+        drop(inventories);
 
         let total_found = buying.len() + selling.len();
 
@@ -910,12 +930,12 @@ impl Bot {
             );
         }
 
-        for (item_name, price) in selling {
+        for (item_name, price, stock) in selling {
             self.client.send_command(
                 "tell".to_string(),
                 vec![
                     player_name.clone(),
-                    format!("Selling {item_name} for {price} coins."),
+                    format!("Selling {item_name} for {price} coins. I have {stock} in stock."),
                 ],
             );
         }

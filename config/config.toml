@@ -2,6 +2,7 @@ position = [17720.0, 14951.0, 237.0]
 orientation = 0
 
 [buy_prices]
+"consumable.potion_freezing" = 1
 "food.cheese" = 50
 "iron|sword.greatsword|sword.long" = 1_000
 

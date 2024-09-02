@@ -21,12 +21,11 @@ use veloren_common::{
         tool::AbilityMap,
         ChatType, ControllerInputs, Item, Ori, Pos,
     },
-    outcome::Outcome,
     time::DayPeriod,
     trade::{PendingTrade, TradeAction, TradeResult},
     uid::Uid,
     uuid::Uuid,
-    DamageSource, ViewDistances,
+    ViewDistances,
 };
 use veloren_common_net::sync::WorldSyncExt;
 
@@ -37,12 +36,10 @@ const COINS: ItemDefinitionId =
 const CLIENT_TPS: Duration = Duration::from_millis(33);
 const TRADE_ACTION_DELAY: Duration = Duration::from_millis(300);
 const ACCOUNCEMENT_DELAY: Duration = Duration::from_mins(45);
-const OUCH_DELAY: Duration = Duration::from_secs(2);
 
 /// An active connection to the Veloren server that will attempt to run every time the `tick`
 /// function is called.
 pub struct Bot {
-    username: String,
     position: Pos,
     orientation: Ori,
     admins: Vec<String>,
@@ -63,7 +60,6 @@ pub struct Bot {
     previous_trade_receipt: Option<Reciept>,
     last_trade_action: Instant,
     last_announcement: Instant,
-    last_ouch: Instant,
     sort_count: u8,
 }
 
@@ -140,7 +136,6 @@ impl Bot {
         let now = Instant::now();
 
         Ok(Bot {
-            username,
             position,
             orientation,
             admins,
@@ -157,7 +152,6 @@ impl Bot {
             previous_trade_receipt: None,
             last_trade_action: now,
             last_announcement: now,
-            last_ouch: now,
             sort_count: 0,
             announcement,
         })
@@ -284,6 +278,11 @@ impl Bot {
                             Some(price_correction_message)
                         }
                     }
+                    "location" => {
+                        self.send_location_info(&sender)?;
+
+                        None
+                    }
                     "ori" => {
                         if self.is_user_admin(&sender)? {
                             if let Some(new_rotation) = split_content.next() {
@@ -366,36 +365,6 @@ impl Bot {
                     );
                 }
             }
-            VelorenEvent::Outcome(Outcome::ProjectileHit {
-                target: Some(target),
-                ..
-            }) => {
-                if let Some(uid) = self.client.uid() {
-                    if uid == target && self.last_ouch.elapsed() > OUCH_DELAY {
-                        self.client
-                            .send_command("say".to_string(), vec!["Ouch!".to_string()]);
-
-                        self.last_ouch = Instant::now();
-                    }
-                }
-            }
-            VelorenEvent::Outcome(Outcome::HealthChange { info, .. }) => {
-                if let Some(DamageSource::Buff(_)) = info.cause {
-                    return Ok(true);
-                }
-
-                if let Some(uid) = self.client.uid() {
-                    if uid == info.target
-                        && info.amount.is_sign_negative()
-                        && self.last_ouch.elapsed() > OUCH_DELAY
-                    {
-                        self.client
-                            .send_command("say".to_string(), vec!["That hurt!".to_string()]);
-
-                        self.last_ouch = Instant::now();
-                    }
-                }
-            }
             VelorenEvent::TradeComplete { result, trade } => {
                 let my_party = trade
                     .which_party(self.client.uid().ok_or("Failed to find uid")?)
@@ -439,47 +408,46 @@ impl Bot {
         Ok(true)
     }
 
+    fn send_location_info(&mut self, target: &Uid) -> Result<(), String> {
+        let player_name = self
+            .find_player_alias(target)
+            .ok_or("Failed to find player alias")?
+            .to_string();
+        let location = self
+            .client
+            .sites()
+            .into_iter()
+            .find_map(|(_, SiteInfoRich { site, .. })| {
+                let x_difference = self.position.0[0] - site.wpos[0] as f32;
+                let y_difference = self.position.0[1] - site.wpos[1] as f32;
+
+                if x_difference.abs() < 100.0 && y_difference.abs() < 100.0 {
+                    site.name.clone()
+                } else {
+                    None
+                }
+            })
+            .unwrap_or(format!("{:?}", self.position));
+
+        self.client.send_command(
+            "tell".to_string(),
+            vec![player_name, format!("I am at {location}.")],
+        );
+
+        Ok(())
+    }
+
     /// Make the bot's trading and help accouncements
     ///
     /// Currently, this can make two announcements: one in /region with basic usage instructions
     /// is always made. If an announcement was provided when the bot was created, it will make it
     /// in /world.
     fn handle_announcement(&mut self) -> Result<(), String> {
-        debug!("Making an announcement");
-
-        self.client.send_command(
-            "region".to_string(),
-            vec![format!(
-                "I'm a bot. You can trade with me or check prices: '/tell {} price [search_term]'.",
-                self.username
-            )],
-        );
-
         if let Some(announcement) = &self.announcement {
-            let announcement = if announcement.contains("{location}") {
-                let location = self
-                    .client
-                    .sites()
-                    .into_iter()
-                    .find_map(|(_, SiteInfoRich { site, .. })| {
-                        let x_difference = self.position.0[0] - site.wpos[0] as f32;
-                        let y_difference = self.position.0[1] - site.wpos[1] as f32;
-
-                        if x_difference.abs() < 100.0 && y_difference.abs() < 100.0 {
-                            site.name.clone()
-                        } else {
-                            None
-                        }
-                    })
-                    .unwrap_or(format!("{:?}", self.position));
-
-                announcement.replace("{location}", &location)
-            } else {
-                announcement.clone()
-            };
+            debug!("Making an announcement");
 
             self.client
-                .send_command("world".to_string(), vec![announcement]);
+                .send_command("region".to_string(), vec![announcement.to_string()]);
         }
 
         Ok(())

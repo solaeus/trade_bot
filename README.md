@@ -33,12 +33,13 @@ The bot is able to respond to the following commands, which must be sent via "/t
   search term.
 - `admin_access`: Admin-only, prompts the bot to send a trade invite to the sender, after which it
   will give away and accept any items until the trade ends.
-- `announce`: Admin-only, sends the announcement message to "/world". This will reset the
+- `announce`: Admin-only, sends the announcement message to "/region". This will reset the
   announcement timer to 45 minutes.
+- `location`: Returns the bot's current town or, if it is not in a town, its current position.
 - `sort [count (optional)]`: Admin-only, sorts the inventory once or the given number of times.
 - `pos [x] [y] [z]`: Admin-only, sets the bot's desired position where it will try to stand (must
-  be close to the bot's current position)
-- `ori [0-360]`: Admin-only, sets the bot's desired orientation (or facing direction)
+  be close to the bot's current position).
+- `ori [0-360]`: Admin-only, sets the bot's desired orientation (or facing direction).
 
 ## Prerequisites
 
@@ -94,10 +95,8 @@ position = [0, 0, 0]
 # Its orientation can be changed in-game with the "ori" command.
 orientation = 0
 
-# Optional. Announcements are sent every 45 minutes. Use {location} to insert the bot's current
-# location. If not set, the bot will not send /world announcements but will still send /region
-# announcements with usage instructions.
-announcement = "I love cheese! I am at {location}."
+# Optional. Announcements are sent every 45 minutes. If not set, the bot will not make announcements.
+announcement = "I love cheese!"
 
 # The buy_prices and sell_prices tables are required. The keys are item definition IDs and the
 # values are the price in coins. You may type in-game "/give_item common.items." and press Tab to
@@ -142,6 +141,17 @@ podman build . -t trade_bot
 
 Then follow the [above](#running) steps with the tag "trade_bot" instead of
 "git.jeffa.io/jeff/trade_bot".
+
+## Changelog
+
+- 9/2/2024:
+  - Added the "location" command.
+  - Removed the "{location}" feature from the announcement message. Announcements are now sent to
+    "/region" so this feature is now used by the "location" command.
+  - Changed announcements to be sent to "/region" instead of "/world". The moderators on the official
+    server have asked for this, so please don't run an old version to circumvent the change.
+  - Removed the "Ouch!" and "That hurt!" messages when the bot is attacked. The moderators have also
+    asked for this.
 
 ## License
 

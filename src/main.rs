@@ -29,10 +29,10 @@ fn main() {
     };
     let game_server = config
         .game_server
-        .unwrap_or("server.veloren.net".to_string());
+        .unwrap_or_else(|| "server.veloren.net".to_string());
     let auth_server = config
         .auth_server
-        .unwrap_or("https://auth.veloren.net".to_string());
+        .unwrap_or_else(|| "https://auth.veloren.net".to_string());
     let mut bot = Bot::new(
         game_server,
         &auth_server,

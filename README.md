@@ -36,6 +36,7 @@ The bot is able to respond to the following commands, which must be sent via "/t
 - `announce`: Admin-only, sends the announcement message to "/region". This will reset the
   announcement timer to 45 minutes.
 - `location`: Returns the bot's current town or, if it is not in a town, its current position.
+- `respawn`: Admin-only, repawns the bot's character.
 - `sort [count (optional)]`: Admin-only, sorts the inventory once or the given number of times.
 - `pos [x] [y] [z]`: Admin-only, sets the bot's desired position where it will try to stand (must
   be close to the bot's current position).
@@ -145,6 +146,7 @@ Then follow the [above](#running) steps with the tag "trade_bot" instead of
 ## Changelog
 
 - 9/2/2024:
+  - Added the "respawn" command.
   - Added the "location" command.
   - Removed the "{location}" feature from the announcement message. Announcements are now sent to
     "/region" so this feature is now used by the "location" command.

@@ -329,6 +329,15 @@ impl Bot {
                             Some(price_correction_message)
                         }
                     }
+                    "respawn" => {
+                        if self.is_user_admin(&sender)? {
+                            self.client.respawn();
+
+                            None
+                        } else {
+                            Some(price_correction_message)
+                        }
+                    }
                     "sort" => {
                         if self.is_user_admin(&sender)? {
                             if let Some(sort_count) = split_content.next() {

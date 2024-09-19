@@ -4,18 +4,18 @@ BasicRanged(
     recover_duration: 0.7,
     projectile: (
         kind: Explosive(
-            radius: 5,
+            radius: 6,
             min_falloff: 0.5,
-            reagent: Some(Purple),
+            reagent: Some(Green),
         ),
         attack: Some((
-            damage: 26,
-            energy: 0,
+            damage: 30,
+            energy: 5,
         )),
     ),
-    projectile_body: Object(FireworkPurple),
-    projectile_speed: 70.0,
-    num_projectiles: Value(1),
-    projectile_spread: 0.0,
+    projectile_body: Object(PoisonBall),
+    projectile_speed: 150.0,
+    num_projectiles: PerHead(1),
+    projectile_spread: 0.5,
     move_efficiency: 0.3,
 )

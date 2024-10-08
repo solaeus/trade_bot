@@ -1,1 +1,0 @@
-items-common-amount = Amount: { $amount }

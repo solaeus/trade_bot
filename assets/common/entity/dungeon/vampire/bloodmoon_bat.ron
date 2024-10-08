@@ -1,0 +1,12 @@
+#![enable(implicit_some)]
+(
+    name: Automatic,
+    body: RandomWith("bloodmoon_bat"),
+    alignment: Alignment(Enemy),
+    loot: Nothing,
+    inventory: (
+        loadout: FromBody,
+    ),
+    death_effects: [Transform(entity_spec: "common.entity.dungeon.vampire.bloodmoon_heiress")],
+    meta: [],
+)

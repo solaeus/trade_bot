@@ -1,0 +1,16 @@
+char_selection-loading_characters = Karakterek betöltése...
+char_selection-delete_permanently = Végérvényesen törlöd ezt a karaktert?
+char_selection-enter_world = Világ betöltése
+char_selection-logout = Kijelentkezés
+char_selection-create_new_character = Új karakter létrehozása
+char_selection-creating_character = Karakter létrehozása...
+char_selection-uncanny_valley = Vadon
+char_selection-beard = Szakáll
+char_selection-hair_style = Fazon
+char_selection-hair_color = Hajszín
+char_selection-eye_color = Szemszín
+char_selection-skin = Bőrszín
+char_selection-eyeshape = Szem tulajdonságai
+char_selection-accessories = Kiegészítők
+char_selection-create_info_name = Még nincs neve a karakterednek!
+char_selection-version_mismatch = VIGYÁZAT! Ezen a szerveren egy másik játékverzió fut, mely lehet, hogy nem kompatibilis az általad használttal. Kérlek frissítsd a játékot.

@@ -1,0 +1,12 @@
+char_selection-delete_permanently = Deletar este personagem permanentemente?
+char_selection-enter_world = Entrar no mundo
+char_selection-logout = Desconectar
+char_selection-create_new_character = Criar nova personagem
+char_selection-uncanny_valley = Vale da estranheza
+char_selection-beard = Barba
+char_selection-hair_style = Estilo do cabelo
+char_selection-hair_color = Cor do cabelo
+char_selection-eye_color = Cor dos olhos
+char_selection-skin = Cor da pele
+char_selection-accessories = Acessórios
+char_selection-loading_characters = Carregando personagens…

@@ -1,0 +1,15 @@
+char_selection-loading_characters = キャラクターをロード中...
+char_selection-delete_permanently = このキャラクターを永久に削除しますか？
+char_selection-enter_world = 世界に入る
+char_selection-logout = ログアウト
+char_selection-create_new_character = 新しいキャラクターを作成
+char_selection-creating_character = キャラクターを作成中...
+char_selection-uncanny_valley = Wilderness
+char_selection-beard = 髭
+char_selection-hair_style = 髪型
+char_selection-hair_color = 髪の色
+char_selection-eye_color = 瞳の色
+char_selection-skin = 肌
+char_selection-eyeshape = 目元
+char_selection-accessories = アクセサリー
+char_selection-create_info_name = キャラクターには名前が必要です！

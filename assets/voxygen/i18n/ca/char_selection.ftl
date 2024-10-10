@@ -1,0 +1,16 @@
+char_selection-loading_characters = Carregant personatges...
+char_selection-delete_permanently = Esborrar permanentment aquest Personatge?
+char_selection-enter_world = Entrar al Món
+char_selection-logout = Tancar Sessió
+char_selection-create_new_character = Crear Nou Personatge
+char_selection-creating_character = Creant Personatge...
+char_selection-uncanny_valley = Terra Salvatge
+char_selection-beard = Barba
+char_selection-hair_style = Pentinat
+char_selection-hair_color = Color de Pèl
+char_selection-eye_color = Color d'Ulls
+char_selection-skin = Pell
+char_selection-eyeshape = Detalls dels Ulls
+char_selection-accessories = Accessoris
+char_selection-create_info_name = El teu Personatge necessita un nom!
+char_selection-version_mismatch = ATENCIÓ! Aquest servidor corre una versió diferent del joc que potser és incompatible. Si us plau, actualitzeu el joc.

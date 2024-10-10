@@ -1,0 +1,54 @@
+hud-crafting = 製作
+hud-crafting-recipes = 配方
+hud-crafting-ingredients = 材料：
+hud-crafting-craft = 製作
+hud-crafting-craft_all = 全部製作
+hud-crafting-repair-selection = 選擇
+hud-crafting-repair_equipped = 已裝備
+hud-crafting-repair_all = 全部
+hud-crafting-tool_cata = 工具：
+hud-crafting-req_crafting_station = 工作台：
+hud-crafting-anvil = 鐵砧
+hud-crafting-cauldron = 大鍋
+hud-crafting-cooking_pot = 烹飪鍋
+hud-crafting-crafting_bench = 工作台
+hud-crafting-forge = 鍛爐
+hud-crafting-loom = 織布機
+hud-crafting-spinning_wheel = 紡車
+hud-crafting-tanning_rack = 鞣製架
+hud-crafting-salvaging_station = 回收工作台
+hud-crafting-repair_bench = 修理工作台
+hud-crafting-campfire = 營火
+hud-crafting-tabs-all = 全部
+hud-crafting-tabs-armor = 護甲
+hud-crafting-tabs-dismantle = 拆解
+hud-crafting-tabs-food = 食物
+hud-crafting-tabs-glider = 滑翔翼
+hud-crafting-tabs-potion = 藥水
+hud-crafting-tabs-tool = 工具
+hud-crafting-tabs-utility = 實用工具
+hud-crafting-tabs-weapon = 武器
+hud-crafting-tabs-bag = 背包
+hud-crafting-tabs-processed_material = 材料
+hud-crafting-dismantle_title = 拆解
+hud-crafting-dismantle_explanation =
+    將滑鼠懸停在背包中的物品上，
+    以查看可回收的物品
+
+    雙擊開始拆解
+hud-crafting-modular_desc = 拖動部件到此處以製作武器
+hud-crafting-repair_desc = 拖動損壞的物品到此處以進行修復
+hud-crafting-mod_weap_prim_slot_title = 主要武器組件
+hud-crafting-mod_weap_prim_slot_desc = 將主要武器組件放在此處（如劍刃、斧頭或弓臂）
+hud-crafting-mod_weap_sec_slot_title = 次要武器組件
+hud-crafting-mod_weap_sec_slot_desc = 將次要武器組件放在此處（如劍柄、弓握把或法杖核心）
+hud-crafting-mod_comp_metal_prim_slot_title = 金屬錠
+hud-crafting-mod_comp_metal_prim_slot_desc = 將金屬錠放在此處，只有某些金屬可以用來製作武器
+hud-crafting-mod_comp_wood_prim_slot_title = 木材
+hud-crafting-mod_comp_wood_prim_slot_desc = 將某種類型的木材放在此處，只有某些木材可以用來製作武器
+hud-crafting-mod_comp_sec_slot_title = 動物材料
+hud-crafting-mod_comp_sec_slot_desc = 可選地放置一種動物材料，只有某些材料可以用來增強武器
+hud-crafting-repair_slot_title = 損壞的物品
+hud-crafting-repair_slot_desc = 將物品放在此處以查看修復它的當前耐久度成本
+hud-crafting-recipe-uncraftable = 無法製作此配方
+hud-crafting-recipe-unlearned = 你必須先學會製作此配方

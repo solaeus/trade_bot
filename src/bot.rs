@@ -11,7 +11,9 @@ use hashbrown::HashMap;
 use log::{debug, info};
 use tokio::runtime::Runtime;
 use vek::{Quaternion, Vec3};
-use veloren_client::{addr::ConnectionArgs, Client, Event as VelorenEvent, SiteInfoRich, WorldExt};
+use veloren_client::{
+    addr::ConnectionArgs, Client, ClientType, Event as VelorenEvent, SiteInfoRich, WorldExt,
+};
 use veloren_client_i18n::LocalizationHandle;
 use veloren_common::{
     clock::Clock,
@@ -1036,6 +1038,7 @@ fn connect_to_veloren(
             &|_| {},
             |_| {},
             Default::default(),
+            ClientType::Bot { privileged: false },
         ))
         .map_err(|error| format!("{error:?}"))
 }

@@ -1,25 +1,234 @@
-announcement = "Beep Boop!"
-position = [17720.0, 14951.0, 237.0]
-orientation = 0
+position = [17744.0, 14975.0, 239.0]
+orientation = 90
+announcement = "Buying cheese, selling potions and other stuff."
 
 [buy_prices]
-"consumable.potion_freezing" = 1
 "food.cheese" = 50
-"iron|sword.greatsword|sword.long" = 1_000
 
 [sell_prices]
-"food.cheese" = 1_000_000
+# Armor
+"armor.misc.neck.ankh_of_life" = 500_000
+"armor.misc.neck.carcanet_of_wrath" = 20_000
+
+## Boreal Armor
+"armor.boreal.back" = 250_000
+"armor.boreal.belt" = 250_000
+"armor.boreal.chest" = 250_000
+"armor.boreal.foot" = 250_000
+"armor.boreal.hand" = 250_000
+"armor.boreal.pants" = 250_000
+"armor.boreal.shoulder" = 250_000
+"armor.misc.head.boreal_warhelm" = 450_000
+
+## Cultist Armor & Jewelry
+"armor.cultist.bandana" = 5_000
+"armor.cultist.shoulder" = 5_000
+"armor.cultist.belt" = 5_000
+"armor.cultist.chest" = 5_000
+"armor.cultist.foot" = 5_000
+"armor.cultist.hand" = 5_000
+"armor.cultist.necklace" = 5_000
+"armor.cultist.pants" = 5_000
+"armor.cultist.ring" = 5_000
+
+## Metal
+### Orichalcum
+"armor.mail.orichalcum.back" = 24_000
+"armor.mail.orichalcum.belt" = 16_000
+"armor.mail.orichalcum.chest" = 80_000
+"armor.mail.orichalcum.foot" = 24_000
+"armor.mail.orichalcum.shoulder" = 62_000
+"armor.mail.orichalcum.pants" = 62_000
+"armor.mail.orichalcum.hand" = 24_000
+"armor.mail.orichalcum.head" = 24_000
+
+### Bloodsteel
+"armor.mail.bloodsteel.back" = 12_000
+"armor.mail.bloodsteel.belt" = 8_000
+"armor.mail.bloodsteel.chest" = 40_000
+"armor.mail.bloodsteel.foot" = 12_000
+"armor.mail.bloodsteel.shoulder" = 31_000
+"armor.mail.bloodsteel.pants" = 31_000
+"armor.mail.bloodsteel.hand" = 12_000
+
+## Hide
+### Dragonscale
+"armor.hide.dragonscale.back" = 20_000
+"armor.hide.dragonscale.belt" = 15_000
+"armor.hide.dragonscale.chest" = 50_000
+"armor.hide.dragonscale.foot" = 20_000
+"armor.hide.dragonscale.shoulder" = 45_000
+"armor.hide.dragonscale.pants" = 45_000
+"armor.hide.dragonscale.hand" = 20_000
+
+## Primal
+"armor.hide.primal.back" = 12_000
+"armor.hide.primal.belt" = 8_000
+"armor.hide.primal.chest" = 40_000
+"armor.hide.primal.foot" = 12_000
+"armor.hide.primal.shoulder" = 31_000
+"armor.hide.primal.pants" = 31_000
+"armor.hide.primal.hand" = 12_000
+
+## Cloth
+### Sunsilk
+"armor.cloth.sunsilk.back" = 100_000
+"armor.cloth.sunsilk.belt" = 15_000
+"armor.cloth.sunsilk.chest" = 200_000
+"armor.cloth.sunsilk.foot" = 10_000
+"armor.cloth.sunsilk.shoulder" = 5_000
+"armor.cloth.sunsilk.pants" = 15_000
+"armor.cloth.sunsilk.hand" = 10_000
+
+### Moonweave
+"armor.cloth.moonweave.back" = 20_000
+"armor.cloth.moonweave.belt" = 15_000
+"armor.cloth.moonweave.chest" = 50_000
+"armor.cloth.moonweave.foot" = 20_000
+"armor.cloth.moonweave.shoulder" = 45_000
+"armor.cloth.moonweave.pants" = 45_000
+"armor.cloth.moonweave.hand" = 20_000
+
+# Hats
+"armor.misc.head.cat_capuche" = 700_000
+"armor.misc.head.facegourd" = 250_000
+"armor.misc.head.hare_hat" = 100_000
+"armor.misc.head.mitre" = 10_000
+"armor.misc.head.winged_coronet" = 30_000
+"calendar.christmas.armor.misc.head.woolly_wintercap" = 250_000
+
+# Crafting
+"crafting_ing.cursed_bead" = 10_000
+"crafting_ing.glacial_crystal" = 150_000
+"crafting_ing.alkahest" = 6_000
+"crafting_ing.animal_misc.phoenix_feather" = 100_000
+"crafting_ing.brinestone" = 2_000
+"crafting_ing.coral_branch" = 1_000
+"crafting_ing.hide.dragon_scale" = 5_000
+"crafting_ing.hide.plate" = 1_000
+"crafting_ing.dwarven_battery" = 10_000
+"crafting_ing.mindflayer_bag_damaged" = 100_000
+"crafting_ing.leather.rigid_leather" = 2_000
+"log.eldwood" = 3_000
+"mineral.ingot.bloodsteel" = 3_000
+"mineral.ingot.orichalcum" = 8_000
+"mineral.ingot.gold" = 5_000
+"mineral.ore.ancient_gold" = 10_000
+
+# Food
+"food.spore_corruption" = 5_000
+
+# Potions
 "consumable.potion_minor" = 150
+"consumable.potion_med" = 350
+
+# Gliders
+"glider.skullgrin" = 10_000
+
+# Bags
+"armor.misc.bag.troll_hide_pack" = 20_000
+"armor.misc.bag.sturdy_red_backpack" = 20_000
+
+# Recipes
+## Armor
+### Metal
+"recipes.armor.iron" = 2_000
+"recipes.armor.steel" = 4_000
+"recipes.armor.cobalt" = 6_000
+"recipes.armor.bloodsteel" = 8_000
+"recipes.armor.orichalcum" = 10_000
+"recipes.armor.brinestone" = 10_000
+"recipes.armor.golemite" = 10_000
+
+### Cloth
+"recipes.armor.woolen" = 2_000
+"recipes.armor.silken" = 4_000
+"recipes.armor.druid" = 6_000
+"recipes.armor.moonweave" = 8_000
+"recipes.armor.sunsilk" = 10_000
+
+### Hide
+"recipes.armor.leather" = 2_000
+"recipes.armor.scale" = 4_000
+"recipes.armor.carapace" = 6_000
+"recipes.armor.primal" = 8_000
+"recipes.armor.dragonscale" = 10_000
+
+## Weapons
+### Metal
+"recipes.weapons.iron" = 2_000
+"recipes.weapons.steel" = 4_000
+"recipes.weapons.cobalt" = 6_000
+"recipes.weapons.bloodsteel" = 8_000
+"recipes.weapons.orichalcum" = 10_000
+
+### Wood
+"recipes.weapons.hardwood" = 4_000
+"recipes.weapons.ironwood" = 4_000
+"recipes.weapons.frostwood" = 8_000
+"recipes.weapons.eldwood" = 10_000
+
+## Equipment
+"recipes.equipment.moderate" = 8_000
+"recipes.equipment.advanced" = 10_000
+
+## Unique
+"recipes.unique.seashell_necklace" = 2_000
+"recipes.unique.abyssal_gorget" = 6_000
+"recipes.unique.abyssal_ring" = 8_000
+"recipes.unique.delvers_lamp" = 10_000
+"recipes.unique.mindflayer_spellbag" = 10_000
+"recipes.unique.troll_hide_pack" = 40_000
+"recipes.unique.winged_coronet" = 20_000
+"recipes.unique.polaris" = 100_000
+
+## Other
+"recipes.charms" = 2_000
+"recipes.explosives" = 2_000
+"recipes.gliders" = 2_000
+"recipes.instruments" = 2_000
+"recipes.utility" = 2_000
+
+# Instruments
+"tool.instruments.icy_talharpa" = 500_000
+"tool.instruments.steeltonguedrum" = 300_000
+
+# Legendary Weapons
+"weapons.axe.parashu" = 150_000
+"weapons.sword.caladbolg" = 150_000
+"weapons.staff.laevateinn" = 50_000
+"weapons.hammer.mjolnir" = 150_000
+"weapons.sceptre.caduceus" = 150_000
+"weapons.bow.sagitta" = 300_000
+
+# Lanterns
+"boss_drops.lantern" = 20_000 # Magic Lantern
+"lantern.blue_0" = 10_000
+"lantern.geode_purp" = 10_000
+"lantern.pumpkin" = 25_000
+
+# Utility
+"utility.bomb" = 500
+"utility.collar" = 100
+"utility.firework_blue" = 200
+"utility.firework_green" = 200
+"utility.firework_purple" = 200
+"utility.firework_red" = 200
+"utility.firework_white" = 200
+"utility.firework_yellow" = 200
 
 # Modular Weapons
-## Axes
+## Orichalcum
+### Axes
 "orichalcum|axe.axe|axe.long" = 45_000
 "orichalcum|axe.axe|axe.medium" = 45_000
 "orichalcum|axe.axe|axe.short" = 45_000
 
 "orichalcum|axe.greataxe|axe.long" = 45_000
+"orichalcum|axe.greataxe|axe.medium" = 45_000
 
 "orichalcum|axe.poleaxe|axe.long" = 45_000
+"orichalcum|axe.poleaxe|axe.medium" = 45_000
 
 "orichalcum|axe.battleaxe|axe.long" = 45_000
 "orichalcum|axe.battleaxe|axe.medium" = 45_000
@@ -30,19 +239,22 @@ orientation = 0
 "orichalcum|axe.jagged|axe.short" = 45_000
 
 "orichalcum|axe.labrys|axe.long" = 45_000
+"orichalcum|axe.labrys|axe.medium" = 45_000
 
 "orichalcum|axe.ornate|axe.long" = 45_000
 "orichalcum|axe.ornate|axe.medium" = 45_000
 "orichalcum|axe.ornate|axe.short" = 45_000
 
-## Swords
+### Swords
 "orichalcum|sword.greatsword|sword.long" = 45_000
+"orichalcum|sword.greatsword|sword.medium" = 45_000
 
 "orichalcum|sword.katana|sword.long" = 45_000
 "orichalcum|sword.katana|sword.medium" = 45_000
 "orichalcum|sword.katana|sword.short" = 45_000
 
 "orichalcum|sword.longsword|sword.long" = 45_000
+"orichalcum|sword.longsword|sword.medium" = 45_000
 
 "orichalcum|sword.ornate|sword.long" = 45_000
 "orichalcum|sword.ornate|sword.medium" = 45_000
@@ -57,8 +269,9 @@ orientation = 0
 "orichalcum|sword.sawblade|sword.short" = 45_000
 
 "orichalcum|sword.zweihander|sword.long" = 45_000
+"orichalcum|sword.zweihander|sword.medium" = 45_000
 
-## Hammers
+### Hammers
 "orichalcum|hammer.hammer|hammer.long" = 45_000
 "orichalcum|hammer.hammer|hammer.medium" = 45_000
 "orichalcum|hammer.hammer|hammer.short" = 45_000
@@ -68,8 +281,10 @@ orientation = 0
 "orichalcum|hammer.ornate|hammer.short" = 45_000
 
 "orichalcum|hammer.greathammer|hammer.long" = 45_000
+"orichalcum|hammer.greathammer|hammer.medium" = 45_000
 
 "orichalcum|hammer.maul|hammer.long" = 45_000
+"orichalcum|hammer.maul|hammer.medium" = 45_000
 
 "orichalcum|hammer.warhammer|hammer.long" = 45_000
 "orichalcum|hammer.warhammer|hammer.medium" = 45_000
@@ -80,8 +295,10 @@ orientation = 0
 "orichalcum|hammer.spikedmace|hammer.short" = 45_000
 
 "orichalcum|hammer.greatmace|hammer.long" = 45_000
+"orichalcum|hammer.greatmace|hammer.medium" = 45_000
 
-## Bows
+## Eldwood
+### Bows
 "eldwood|bow.bow|bow.long" = 20_000
 "eldwood|bow.composite|bow.long" = 20_000
 "eldwood|bow.greatbow|bow.long" = 20_000
@@ -106,7 +323,7 @@ orientation = 0
 "eldwood|bow.shortbow|bow.short" = 20_000
 "eldwood|bow.warbow|bow.short" = 20_000
 
-## Staffs
+### Staffs
 "eldwood|staff.brand|staff.heavy" = 20_000
 "eldwood|staff.grandstaff|staff.heavy" = 20_000
 "eldwood|staff.longpole|staff.heavy" = 20_000
@@ -131,7 +348,7 @@ orientation = 0
 "eldwood|staff.rod|staff.light" = 20_000
 "eldwood|staff.staff|staff.light" = 20_000
 
-## Sceptres
+### Sceptres
 "eldwood|sceptre.arbor|sceptre.heavy" = 20_000
 "eldwood|sceptre.cane|sceptre.heavy" = 20_000
 "eldwood|sceptre.crook|sceptre.heavy" = 20_000
@@ -155,3 +372,158 @@ orientation = 0
 "eldwood|sceptre.grandsceptre|sceptre.light" = 20_000
 "eldwood|sceptre.ornate|sceptre.light" = 20_000
 "eldwood|sceptre.sceptre|sceptre.light" = 20_000
+
+## Bloodsteel
+### Axes
+"bloodsteel|axe.axe|axe.long" = 15_000
+"bloodsteel|axe.axe|axe.medium" = 15_000
+"bloodsteel|axe.axe|axe.short" = 15_000
+
+"bloodsteel|axe.greataxe|axe.long" = 15_000
+"bloodsteel|axe.greataxe|axe.medium" = 15_000
+
+"bloodsteel|axe.poleaxe|axe.long" = 15_000
+"bloodsteel|axe.poleaxe|axe.medium" = 15_000
+
+"bloodsteel|axe.battleaxe|axe.long" = 15_000
+"bloodsteel|axe.battleaxe|axe.medium" = 15_000
+"bloodsteel|axe.battleaxe|axe.short" = 15_000
+
+"bloodsteel|axe.jagged|axe.long" = 15_000
+"bloodsteel|axe.jagged|axe.medium" = 15_000
+"bloodsteel|axe.jagged|axe.short" = 15_000
+
+"bloodsteel|axe.labrys|axe.long" = 15_000
+"bloodsteel|axe.labrys|axe.medium" = 15_000
+
+"bloodsteel|axe.ornate|axe.long" = 15_000
+"bloodsteel|axe.ornate|axe.medium" = 15_000
+"bloodsteel|axe.ornate|axe.short" = 15_000
+
+### Swords
+"bloodsteel|sword.greatsword|sword.long" = 15_000
+"bloodsteel|sword.greatsword|sword.medium" = 15_000
+
+"bloodsteel|sword.katana|sword.long" = 15_000
+"bloodsteel|sword.katana|sword.medium" = 15_000
+"bloodsteel|sword.katana|sword.short" = 15_000
+
+"bloodsteel|sword.longsword|sword.long" = 15_000
+"bloodsteel|sword.longsword|sword.medium" = 15_000
+
+"bloodsteel|sword.ornate|sword.long" = 15_000
+"bloodsteel|sword.ornate|sword.medium" = 15_000
+"bloodsteel|sword.ornate|sword.short" = 15_000
+
+"bloodsteel|sword.sabre|sword.long" = 15_000
+"bloodsteel|sword.sabre|sword.medium" = 15_000
+"bloodsteel|sword.sabre|sword.short" = 15_000
+
+"bloodsteel|sword.sawblade|sword.long" = 15_000
+"bloodsteel|sword.sawblade|sword.medium" = 15_000
+"bloodsteel|sword.sawblade|sword.short" = 15_000
+
+"bloodsteel|sword.zweihander|sword.long" = 15_000
+"bloodsteel|sword.zweihander|sword.medium" = 15_000
+
+### Hammers
+"bloodsteel|hammer.hammer|hammer.long" = 15_000
+"bloodsteel|hammer.hammer|hammer.medium" = 15_000
+"bloodsteel|hammer.hammer|hammer.short" = 15_000
+
+"bloodsteel|hammer.ornate|hammer.long" = 15_000
+"bloodsteel|hammer.ornate|hammer.medium" = 15_000
+"bloodsteel|hammer.ornate|hammer.short" = 15_000
+
+"bloodsteel|hammer.greathammer|hammer.long" = 15_000
+"bloodsteel|hammer.greathammer|hammer.medium" = 15_000
+
+"bloodsteel|hammer.maul|hammer.long" = 15_000
+"bloodsteel|hammer.maul|hammer.medium" = 15_000
+
+"bloodsteel|hammer.warhammer|hammer.long" = 15_000
+"bloodsteel|hammer.warhammer|hammer.medium" = 15_000
+"bloodsteel|hammer.warhammer|hammer.short" = 15_000
+
+"bloodsteel|hammer.spikedmace|hammer.long" = 15_000
+"bloodsteel|hammer.spikedmace|hammer.medium" = 15_000
+"bloodsteel|hammer.spikedmace|hammer.short" = 15_000
+
+"bloodsteel|hammer.greatmace|hammer.long" = 15_000
+"bloodsteel|hammer.greatmace|hammer.medium" = 15_000
+
+## Frostwood
+### Bows
+"frostwood|bow.bow|bow.long" = 10_000
+"frostwood|bow.composite|bow.long" = 10_000
+"frostwood|bow.greatbow|bow.long" = 10_000
+"frostwood|bow.longbow|bow.long" = 10_000
+"frostwood|bow.ornate|bow.long" = 10_000
+"frostwood|bow.shortbow|bow.long" = 10_000
+"frostwood|bow.warbow|bow.long" = 10_000
+
+"frostwood|bow.bow|bow.medium" = 10_000
+"frostwood|bow.composite|bow.medium" = 10_000
+"frostwood|bow.greatbow|bow.medium" = 10_000
+"frostwood|bow.longbow|bow.medium" = 10_000
+"frostwood|bow.ornate|bow.medium" = 10_000
+"frostwood|bow.shortbow|bow.medium" = 10_000
+"frostwood|bow.warbow|bow.medium" = 10_000
+
+"frostwood|bow.bow|bow.short" = 10_000
+"frostwood|bow.composite|bow.short" = 10_000
+"frostwood|bow.greatbow|bow.short" = 10_000
+"frostwood|bow.longbow|bow.short" = 10_000
+"frostwood|bow.ornate|bow.short" = 10_000
+"frostwood|bow.shortbow|bow.short" = 10_000
+"frostwood|bow.warbow|bow.short" = 10_000
+
+### Staffs
+"frostwood|staff.brand|staff.heavy" = 10_000
+"frostwood|staff.grandstaff|staff.heavy" = 10_000
+"frostwood|staff.longpole|staff.heavy" = 10_000
+"frostwood|staff.ornate|staff.heavy" = 10_000
+"frostwood|staff.pole|staff.heavy" = 10_000
+"frostwood|staff.rod|staff.heavy" = 10_000
+"frostwood|staff.staff|staff.heavy" = 10_000
+
+"frostwood|staff.brand|staff.medium" = 10_000
+"frostwood|staff.grandstaff|staff.medium" = 10_000
+"frostwood|staff.longpole|staff.medium" = 10_000
+"frostwood|staff.ornate|staff.medium" = 10_000
+"frostwood|staff.pole|staff.medium" = 10_000
+"frostwood|staff.rod|staff.medium" = 10_000
+"frostwood|staff.staff|staff.medium" = 10_000
+
+"frostwood|staff.brand|staff.light" = 10_000
+"frostwood|staff.grandstaff|staff.light" = 10_000
+"frostwood|staff.longpole|staff.light" = 10_000
+"frostwood|staff.ornate|staff.light" = 10_000
+"frostwood|staff.pole|staff.light" = 10_000
+"frostwood|staff.rod|staff.light" = 10_000
+"frostwood|staff.staff|staff.light" = 10_000
+
+### Sceptres
+"frostwood|sceptre.arbor|sceptre.heavy" = 10_000
+"frostwood|sceptre.cane|sceptre.heavy" = 10_000
+"frostwood|sceptre.crook|sceptre.heavy" = 10_000
+"frostwood|sceptre.crozier|sceptre.heavy" = 10_000
+"frostwood|sceptre.grandsceptre|sceptre.heavy" = 10_000
+"frostwood|sceptre.ornate|sceptre.heavy" = 10_000
+"frostwood|sceptre.sceptre|sceptre.heavy" = 10_000
+
+"frostwood|sceptre.arbor|sceptre.medium" = 10_000
+"frostwood|sceptre.cane|sceptre.medium" = 10_000
+"frostwood|sceptre.crook|sceptre.medium" = 10_000
+"frostwood|sceptre.crozier|sceptre.medium" = 10_000
+"frostwood|sceptre.grandsceptre|sceptre.medium" = 10_000
+"frostwood|sceptre.ornate|sceptre.medium" = 10_000
+"frostwood|sceptre.sceptre|sceptre.medium" = 10_000
+
+"frostwood|sceptre.arbor|sceptre.light" = 10_000
+"frostwood|sceptre.cane|sceptre.light" = 10_000
+"frostwood|sceptre.crook|sceptre.light" = 10_000
+"frostwood|sceptre.crozier|sceptre.light" = 10_000
+"frostwood|sceptre.grandsceptre|sceptre.light" = 10_000
+"frostwood|sceptre.ornate|sceptre.light" = 10_000
+"frostwood|sceptre.sceptre|sceptre.light" = 10_000

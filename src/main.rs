@@ -45,6 +45,7 @@ fn main() {
         config.position,
         config.orientation,
         config.announcement,
+        config.ban_list,
     )
     .expect("Failed to create bot");
 

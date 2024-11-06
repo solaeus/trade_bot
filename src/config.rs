@@ -27,6 +27,7 @@ pub struct Config {
     pub announcement: Option<String>,
     pub buy_prices: PriceList,
     pub sell_prices: PriceList,
+    pub ban_list: Vec<String>,
 }
 
 #[derive(Deserialize)]

@@ -1,9 +1,12 @@
 position = [17725.5, 14946.5, 239.0]
 orientation = 45
 announcement = "Buying cheese, selling potions and other stuff."
+ban_list = ["And_i", "ErrorUsernameUnfound"]
 
 [buy_prices]
 "food.cheese" = 50
+"consumable.potion_minor" = 100
+"mineral.ingot.orichalcum" = 6_000
 
 [sell_prices]
 # Armor
@@ -93,6 +96,7 @@ announcement = "Buying cheese, selling potions and other stuff."
 "armor.misc.head.cat_capuche" = 700_000
 "armor.misc.head.facegourd" = 250_000
 "armor.misc.head.hare_hat" = 100_000
+"armor.misc.head.hog_hood" = 10_000
 "armor.misc.head.mitre" = 10_000
 "armor.misc.head.winged_coronet" = 30_000
 "calendar.christmas.armor.misc.head.woolly_wintercap" = 250_000
@@ -113,6 +117,7 @@ announcement = "Buying cheese, selling potions and other stuff."
 "mineral.ingot.bloodsteel" = 3_000
 "mineral.ingot.orichalcum" = 8_000
 "mineral.ingot.gold" = 5_000
+"mineral.ingot.silver" = 5_000
 "mineral.ore.ancient_gold" = 10_000
 
 # Food

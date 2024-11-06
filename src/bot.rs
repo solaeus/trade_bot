@@ -57,6 +57,7 @@ pub struct Bot {
     buy_prices: PriceList,
     sell_prices: PriceList,
     trade_mode: TradeMode,
+    ban_list: Vec<String>,
 
     previous_trade: Option<PendingTrade>,
     previous_trade_receipt: Option<Reciept>,
@@ -81,6 +82,7 @@ impl Bot {
         position: Option<[f32; 3]>,
         orientation: Option<f32>,
         announcement: Option<String>,
+        ban_list: Vec<String>,
     ) -> Result<Self, String> {
         info!("Connecting to veloren");
 
@@ -149,6 +151,7 @@ impl Bot {
             localization: LocalizationHandle::load_expect("en"),
             buy_prices,
             sell_prices,
+            ban_list,
             trade_mode: TradeMode::Trade,
             previous_trade: None,
             previous_trade_receipt: None,
@@ -250,13 +253,29 @@ impl Bot {
                 } else {
                     return Ok(true);
                 };
+                let sender_alias = self
+                    .find_player_alias(&sender)
+                    .ok_or("Failed to find player alias")?;
+                let sender_uuid = self
+                    .find_uuid(&sender)
+                    .ok_or("Failed to find player UUID")?
+                    .to_string();
+                let is_sender_admin =
+                    || self.is_user_admin(sender_alias) || self.is_user_admin(&sender_uuid);
+                let is_sender_banned =
+                    || self.is_user_banned(sender_alias) || self.is_user_banned(&sender_uuid);
                 let content = message.content().as_plain().unwrap_or_default();
                 let mut split_content = content.split(' ');
                 let command = split_content.next().unwrap_or_default();
                 let price_correction_message = "Use the format 'price [search_term]'";
+
+                if is_sender_banned() {
+                    return Ok(true);
+                }
+
                 let correction_message = match command {
                     "admin_access" => {
-                        if self.is_user_admin(&sender)? && !self.client.is_trading() {
+                        if is_sender_admin() && !self.client.is_trading() {
                             info!("Providing admin access");
 
                             self.previous_trade = None;
@@ -270,7 +289,7 @@ impl Bot {
                         }
                     }
                     "announce" => {
-                        if self.is_user_admin(&sender)? {
+                        if is_sender_admin() {
                             self.handle_announcement()?;
 
                             self.last_announcement = Instant::now();
@@ -286,7 +305,7 @@ impl Bot {
                         None
                     }
                     "ori" => {
-                        if self.is_user_admin(&sender)? {
+                        if is_sender_admin() {
                             if let Some(new_rotation) = split_content.next() {
                                 let new_rotation = new_rotation
                                     .parse::<f32>()
@@ -311,7 +330,7 @@ impl Bot {
                         None
                     }
                     "pos" => {
-                        if self.is_user_admin(&sender)? {
+                        if is_sender_admin() {
                             if let (Some(x), Some(y), Some(z)) = (
                                 split_content.next(),
                                 split_content.next(),
@@ -332,7 +351,7 @@ impl Bot {
                         }
                     }
                     "sort" => {
-                        if self.is_user_admin(&sender)? {
+                        if is_sender_admin() {
                             if let Some(sort_count) = split_content.next() {
                                 let sort_count = sort_count
                                     .parse::<u8>()
@@ -914,19 +933,13 @@ impl Bot {
     }
 
     /// Determines if the Uid belongs to an admin.
-    fn is_user_admin(&self, uid: &Uid) -> Result<bool, String> {
-        let sender_name = self.find_player_alias(uid).ok_or("Failed to find name")?;
+    fn is_user_admin(&self, alias_or_uuid: &String) -> bool {
+        self.admins.contains(alias_or_uuid)
+    }
 
-        if self.admins.contains(sender_name) {
-            Ok(true)
-        } else {
-            let sender_uuid = self
-                .find_uuid(uid)
-                .ok_or("Failed to find uuid")?
-                .to_string();
-
-            Ok(self.admins.contains(&sender_uuid))
-        }
+    /// Determines if the Uid belongs to a banned player.
+    fn is_user_banned(&self, alias_or_uuid: &String) -> bool {
+        self.ban_list.contains(alias_or_uuid)
     }
 
     /// Moves the character to the configured position and orientation.

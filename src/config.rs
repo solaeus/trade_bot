@@ -70,7 +70,9 @@ impl<'de> Visitor<'de> for PriceListVisitor {
         while let Some((key, value)) = map.next_entry::<String, u32>()? {
             let item_id = match key.splitn(3, '|').collect::<Vec<&str>>().as_slice() {
                 [material, primary, secondary] => {
-                    let material = material.parse::<Material>().map_err(de::Error::custom)?;
+                    let material = material.parse::<Material>().map_err(|error| {
+                        de::Error::custom(format!("Failed to parse material: {}", error))
+                    })?;
                     let mut primary = primary.to_string();
                     let mut secondary = secondary.to_string();
 

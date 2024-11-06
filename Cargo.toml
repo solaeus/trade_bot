@@ -5,13 +5,13 @@ edition = "2021"
 
 [dependencies]
 tokio = "1.38.0"
-veloren-common = { git = "https://gitlab.com/veloren/veloren", branch = "master", features = [
+veloren-common = { git = "https://gitlab.com/veloren/veloren", tag = "weekly", features = [
     "no-assets",
 ] }
-veloren-common-net = { git = "https://gitlab.com/veloren/veloren", branch = "master" }
-veloren-client = { git = "https://gitlab.com/veloren/veloren", branch = "master" }
-veloren-world = { git = "https://gitlab.com/veloren/veloren", branch = "master" }
-veloren-client-i18n = { git = "https://gitlab.com/veloren/veloren", branch = "master" }
+veloren-common-net = { git = "https://gitlab.com/veloren/veloren", tag = "weekly" }
+veloren-client = { git = "https://gitlab.com/veloren/veloren", tag = "weekly" }
+veloren-world = { git = "https://gitlab.com/veloren/veloren", tag = "weekly" }
+veloren-client-i18n = { git = "https://gitlab.com/veloren/veloren", tag = "weekly" }
 toml = "0.8.14"
 serde = { version = "1.0.203", features = ["derive"] }
 log = "0.4.22"

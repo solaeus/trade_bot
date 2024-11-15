@@ -1678,6 +1678,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "mint"
+version = "0.5.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e53debba6bda7a793e5f99b8dacf19e626084f525f7829104ba9898f367d85ff"
+
+[[package]]
 name = "mio"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3131,6 +3137,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "86dce3b89992dbfee9b6f46d8a98a4a5ecf79f93f3b077fad3cc2759ebe92214"
 dependencies = [
  "approx",
+ "mint",
  "num-integer",
  "num-traits",
  "rustc_version",
@@ -3140,7 +3147,7 @@ dependencies = [
 [[package]]
 name = "veloren-client"
 version = "0.16.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#2dd493e3bc2fc0b274e48e283e9476c7178594d2"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
 dependencies = [
  "authc",
  "byteorder",
@@ -3166,7 +3173,7 @@ dependencies = [
 [[package]]
 name = "veloren-client-i18n"
 version = "0.13.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#2dd493e3bc2fc0b274e48e283e9476c7178594d2"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
 dependencies = [
  "deunicode",
  "fluent",
@@ -3184,7 +3191,7 @@ dependencies = [
 [[package]]
 name = "veloren-common"
 version = "0.10.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#2dd493e3bc2fc0b274e48e283e9476c7178594d2"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
 dependencies = [
  "approx",
  "bitflags 2.6.0",
@@ -3224,7 +3231,7 @@ dependencies = [
 [[package]]
 name = "veloren-common-assets"
 version = "0.10.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#2dd493e3bc2fc0b274e48e283e9476c7178594d2"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
 dependencies = [
  "assets_manager",
  "dot_vox",
@@ -3239,7 +3246,7 @@ dependencies = [
 [[package]]
 name = "veloren-common-base"
 version = "0.10.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#2dd493e3bc2fc0b274e48e283e9476c7178594d2"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
 dependencies = [
  "directories-next",
  "tracing",
@@ -3248,7 +3255,7 @@ dependencies = [
 [[package]]
 name = "veloren-common-ecs"
 version = "0.10.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#2dd493e3bc2fc0b274e48e283e9476c7178594d2"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
 dependencies = [
  "specs",
  "tracing",
@@ -3258,7 +3265,7 @@ dependencies = [
 [[package]]
 name = "veloren-common-i18n"
 version = "0.1.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#2dd493e3bc2fc0b274e48e283e9476c7178594d2"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
 dependencies = [
  "hashbrown 0.14.5",
  "rand",
@@ -3268,7 +3275,7 @@ dependencies = [
 [[package]]
 name = "veloren-common-net"
 version = "0.10.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#2dd493e3bc2fc0b274e48e283e9476c7178594d2"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
 dependencies = [
  "bincode",
  "flate2",
@@ -3286,7 +3293,7 @@ dependencies = [
 [[package]]
 name = "veloren-common-state"
 version = "0.10.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#2dd493e3bc2fc0b274e48e283e9476c7178594d2"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
 dependencies = [
  "async-trait",
  "bytes",
@@ -3308,7 +3315,7 @@ dependencies = [
 [[package]]
 name = "veloren-common-systems"
 version = "0.10.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#2dd493e3bc2fc0b274e48e283e9476c7178594d2"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
 dependencies = [
  "itertools",
  "ordered-float",
@@ -3326,7 +3333,7 @@ dependencies = [
 [[package]]
 name = "veloren-network"
 version = "0.3.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#2dd493e3bc2fc0b274e48e283e9476c7178594d2"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
 dependencies = [
  "async-channel",
  "async-trait",
@@ -3351,7 +3358,7 @@ dependencies = [
 [[package]]
 name = "veloren-network-protocol"
 version = "0.6.1"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#2dd493e3bc2fc0b274e48e283e9476c7178594d2"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
 dependencies = [
  "async-trait",
  "bitflags 2.6.0",
@@ -3365,7 +3372,7 @@ dependencies = [
 [[package]]
 name = "veloren-world"
 version = "0.10.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#2dd493e3bc2fc0b274e48e283e9476c7178594d2"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
 dependencies = [
  "arr_macro",
  "bincode",

@@ -47,9 +47,9 @@ dependencies = [
 
 [[package]]
 name = "allocator-api2"
-version = "0.2.18"
+version = "0.2.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c6cb57a04249c6480766f7f7cef5467412af1490f8d1e243141daddada3264f"
+checksum = "45862d1c77f2228b9e10bc609d5bc203d86ebc9b87ad8d5d5167a6c9abf739d9"
 
 [[package]]
 name = "android-tzdata"
@@ -160,9 +160,9 @@ checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
 
 [[package]]
 name = "assets_manager"
-version = "0.12.3"
+version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "16c242549da57042726709f322919e546a55b4fab244291b400d49fa39b25bc3"
+checksum = "ace748e030e290ec2f9b634f65f77089b7c552265ebc8be9236ec382e2ae71e9"
 dependencies = [
  "ahash 0.8.11",
  "bincode",
@@ -353,9 +353,9 @@ checksum = "9ac0150caa2ae65ca5bd83f25c7de183dea78d4d366469f148435e2acfbad0da"
 
 [[package]]
 name = "cc"
-version = "1.1.36"
+version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "baee610e9452a8f6f0a1b6194ec09ff9e2d85dea54432acdae41aa0761c95d70"
+checksum = "fd9de9f2205d5ef3fd67e685b0df337994ddd4495e2a28d185500d0e1edfea47"
 dependencies = [
  "shlex",
 ]
@@ -465,9 +465,9 @@ checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
 name = "cpufeatures"
-version = "0.2.14"
+version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "608697df725056feaccfa42cffdaeeec3fccc4ffc38358ecd19b243e716a78e0"
+checksum = "0ca741a962e1b0bff6d724a1a0958b686406e853bb14061f218562e1896f95e6"
 dependencies = [
  "libc",
 ]
@@ -812,9 +812,9 @@ dependencies = [
 
 [[package]]
 name = "flate2"
-version = "1.0.34"
+version = "1.0.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a1b589b4dc103969ad3cf85c950899926ec64300a1a46d76c03a6072957036f0"
+checksum = "c936bfdafb507ebbf50b8074c54fa31c5be9a1e7e5f467dd659697041407d07c"
 dependencies = [
  "crc32fast",
  "miniz_oxide",
@@ -858,7 +858,7 @@ name = "fluent-syntax"
 version = "0.11.0"
 source = "git+https://github.com/juliancoffee/fluent-rs.git?branch=patched#929cf9512de121cce9b4cbf1cb860cd3294a1cd9"
 dependencies = [
- "thiserror",
+ "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -1010,8 +1010,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c4567c8db10ae91089c99af84c68c38da3ec2f087c3f82960bcdbf3656b6f4d7"
 dependencies = [
  "cfg-if",
+ "js-sys",
  "libc",
  "wasi",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -1102,7 +1104,7 @@ dependencies = [
  "ipnet",
  "once_cell",
  "rand",
- "thiserror",
+ "thiserror 1.0.69",
  "tinyvec",
  "tokio",
  "tracing",
@@ -1125,7 +1127,7 @@ dependencies = [
  "rand",
  "resolv-conf",
  "smallvec",
- "thiserror",
+ "thiserror 1.0.69",
  "tokio",
  "tracing",
 ]
@@ -1519,7 +1521,7 @@ dependencies = [
  "combine",
  "jni-sys",
  "log",
- "thiserror",
+ "thiserror 1.0.69",
  "walkdir",
 ]
 
@@ -1569,9 +1571,9 @@ checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 
 [[package]]
 name = "libc"
-version = "0.2.161"
+version = "0.2.162"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e9489c2807c139ffd9c1794f4af0ebe86a828db53ecdc7fea2111d0fed085d1"
+checksum = "18d287de67fe55fd7e1581fe933d965a5a9477b38e949cfa9f8574ef01506398"
 
 [[package]]
 name = "libredox"
@@ -1629,7 +1631,7 @@ dependencies = [
  "bitflags 2.6.0",
  "byteorder",
  "culpa",
- "thiserror",
+ "thiserror 1.0.69",
  "twox-hash",
 ]
 
@@ -2031,7 +2033,7 @@ dependencies = [
  "lazy_static",
  "memchr",
  "parking_lot",
- "thiserror",
+ "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -2042,9 +2044,9 @@ checksum = "a1d01941d82fa2ab50be1e79e6714289dd7cde78eba4c074bc5a4374f650dfe0"
 
 [[package]]
 name = "quinn"
-version = "0.11.5"
+version = "0.11.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8c7c5fdde3cdae7203427dc4f0a68fe0ed09833edc525a03456b153b79828684"
+checksum = "62e96808277ec6f97351a2380e6c25114bc9e67037775464979f3037c92d05ef"
 dependencies = [
  "bytes",
  "pin-project-lite",
@@ -2053,27 +2055,30 @@ dependencies = [
  "rustc-hash 2.0.0",
  "rustls",
  "socket2",
- "thiserror",
+ "thiserror 2.0.3",
  "tokio",
  "tracing",
 ]
 
 [[package]]
 name = "quinn-proto"
-version = "0.11.8"
+version = "0.11.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fadfaed2cd7f389d0161bb73eeb07b7b78f8691047a6f3e73caaeae55310a4a6"
+checksum = "a2fe5ef3495d7d2e377ff17b1a8ce2ee2ec2a18cde8b6ad6619d65d0701c135d"
 dependencies = [
  "bytes",
+ "getrandom",
  "rand",
  "ring",
  "rustc-hash 2.0.0",
  "rustls",
+ "rustls-pki-types",
  "rustls-platform-verifier",
  "slab",
- "thiserror",
+ "thiserror 2.0.3",
  "tinyvec",
  "tracing",
+ "web-time",
 ]
 
 [[package]]
@@ -2181,7 +2186,7 @@ checksum = "ba009ff324d1fc1b900bd1fdb31564febe58a8ccc8a6fdbb93b543d33b13ca43"
 dependencies = [
  "getrandom",
  "libredox",
- "thiserror",
+ "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -2198,9 +2203,9 @@ dependencies = [
 
 [[package]]
 name = "regex-automata"
-version = "0.4.8"
+version = "0.4.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "368758f23274712b504848e9d5a6f010445cc8b87a7cdb4d7cbee666c1288da3"
+checksum = "809e8dc61f6de73b46c85f4c96486310fe304c434cfa43669d7b40f711150908"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -2348,12 +2353,15 @@ name = "rustls-pki-types"
 version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "16f1201b3c9a7ee8039bcadc17b7e605e2945b27eee7631788c1bd2b0643674b"
+dependencies = [
+ "web-time",
+]
 
 [[package]]
 name = "rustls-platform-verifier"
-version = "0.3.4"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "afbb878bdfdf63a336a5e63561b1835e7a8c91524f51621db870169eac84b490"
+checksum = "a4c7dc240fec5517e6c4eab3310438636cfe6391dfc345ba013109909a90d136"
 dependencies = [
  "core-foundation",
  "core-foundation-sys",
@@ -2366,8 +2374,8 @@ dependencies = [
  "rustls-webpki",
  "security-framework",
  "security-framework-sys",
- "webpki-roots",
- "winapi",
+ "webpki-root-certs",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2439,9 +2447,9 @@ dependencies = [
 
 [[package]]
 name = "security-framework-sys"
-version = "2.12.0"
+version = "2.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea4a292869320c0272d7bc55a5a6aafaff59b4f63404a003887b679a2e05b4b6"
+checksum = "fa39c7303dc58b5543c94d22c1766b0d31f2ee58306363ea622b10bbc075eaa2"
 dependencies = [
  "core-foundation-sys",
  "libc",
@@ -2470,18 +2478,18 @@ checksum = "61697e0a1c7e512e84a621326239844a24d8207b4669b41bc18b32ea5cbf988b"
 
 [[package]]
 name = "serde"
-version = "1.0.214"
+version = "1.0.215"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f55c3193aca71c12ad7890f1785d2b73e1b9f63a0bbc353c08ef26fe03fc56b5"
+checksum = "6513c1ad0b11a9376da888e3e0baa0077f1aed55c17f50e7b2397136129fb88f"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.214"
+version = "1.0.215"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de523f781f095e28fa605cdce0f8307e451cc0fd14e2eb4cd2e98a355b147766"
+checksum = "ad1e866f866923f252f05c889987993144fb74e722403468a4ebd70c3cd756c0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2761,18 +2769,38 @@ checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 
 [[package]]
 name = "thiserror"
-version = "1.0.68"
+version = "1.0.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "02dd99dc800bbb97186339685293e1cc5d9df1f8fae2d0aecd9ff1c77efea892"
+checksum = "b6aaf5339b578ea85b50e080feb250a3e8ae8cfcdff9a461c9ec2904bc923f52"
 dependencies = [
- "thiserror-impl",
+ "thiserror-impl 1.0.69",
+]
+
+[[package]]
+name = "thiserror"
+version = "2.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c006c85c7651b3cf2ada4584faa36773bd07bac24acfb39f3c431b36d7e667aa"
+dependencies = [
+ "thiserror-impl 2.0.3",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.68"
+version = "1.0.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7c61ec9a6f64d2793d8a45faba21efbe3ced62a886d44c36a009b2b519b4c7e"
+checksum = "4fee6c4efc90059e10f81e6d42c60a18f76588c3d74cb83a0b242a2b6c7504c1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.87",
+]
+
+[[package]]
+name = "thiserror-impl"
+version = "2.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f077553d607adc1caf65430528a576c757a71ed73944b66ebb58ef2bbd243568"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2825,9 +2853,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.41.0"
+version = "1.41.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "145f3413504347a2be84393cc8a7d2fb4d863b375909ea59f2158261aa258bbb"
+checksum = "22cfb5bee7a6a52939ca9224d6ac897bb669134078daa8735560897f69de4d33"
 dependencies = [
  "backtrace",
  "bytes",
@@ -3147,7 +3175,7 @@ dependencies = [
 [[package]]
 name = "veloren-client"
 version = "0.16.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#57ed7d762c4f93e58db96c7c28171787e1d9b700"
 dependencies = [
  "authc",
  "byteorder",
@@ -3173,7 +3201,7 @@ dependencies = [
 [[package]]
 name = "veloren-client-i18n"
 version = "0.13.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#57ed7d762c4f93e58db96c7c28171787e1d9b700"
 dependencies = [
  "deunicode",
  "fluent",
@@ -3191,7 +3219,7 @@ dependencies = [
 [[package]]
 name = "veloren-common"
 version = "0.10.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#57ed7d762c4f93e58db96c7c28171787e1d9b700"
 dependencies = [
  "approx",
  "bitflags 2.6.0",
@@ -3231,7 +3259,7 @@ dependencies = [
 [[package]]
 name = "veloren-common-assets"
 version = "0.10.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#57ed7d762c4f93e58db96c7c28171787e1d9b700"
 dependencies = [
  "assets_manager",
  "dot_vox",
@@ -3246,7 +3274,7 @@ dependencies = [
 [[package]]
 name = "veloren-common-base"
 version = "0.10.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#57ed7d762c4f93e58db96c7c28171787e1d9b700"
 dependencies = [
  "directories-next",
  "tracing",
@@ -3255,7 +3283,7 @@ dependencies = [
 [[package]]
 name = "veloren-common-ecs"
 version = "0.10.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#57ed7d762c4f93e58db96c7c28171787e1d9b700"
 dependencies = [
  "specs",
  "tracing",
@@ -3265,7 +3293,7 @@ dependencies = [
 [[package]]
 name = "veloren-common-i18n"
 version = "0.1.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#57ed7d762c4f93e58db96c7c28171787e1d9b700"
 dependencies = [
  "hashbrown 0.14.5",
  "rand",
@@ -3275,7 +3303,7 @@ dependencies = [
 [[package]]
 name = "veloren-common-net"
 version = "0.10.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#57ed7d762c4f93e58db96c7c28171787e1d9b700"
 dependencies = [
  "bincode",
  "flate2",
@@ -3293,7 +3321,7 @@ dependencies = [
 [[package]]
 name = "veloren-common-state"
 version = "0.10.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#57ed7d762c4f93e58db96c7c28171787e1d9b700"
 dependencies = [
  "async-trait",
  "bytes",
@@ -3315,7 +3343,7 @@ dependencies = [
 [[package]]
 name = "veloren-common-systems"
 version = "0.10.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#57ed7d762c4f93e58db96c7c28171787e1d9b700"
 dependencies = [
  "itertools",
  "ordered-float",
@@ -3333,7 +3361,7 @@ dependencies = [
 [[package]]
 name = "veloren-network"
 version = "0.3.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#57ed7d762c4f93e58db96c7c28171787e1d9b700"
 dependencies = [
  "async-channel",
  "async-trait",
@@ -3358,7 +3386,7 @@ dependencies = [
 [[package]]
 name = "veloren-network-protocol"
 version = "0.6.1"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#57ed7d762c4f93e58db96c7c28171787e1d9b700"
 dependencies = [
  "async-trait",
  "bitflags 2.6.0",
@@ -3372,7 +3400,7 @@ dependencies = [
 [[package]]
 name = "veloren-world"
 version = "0.10.0"
-source = "git+https://gitlab.com/veloren/veloren?tag=weekly#736665224668da63e2299adbd20b109aa0a78e61"
+source = "git+https://gitlab.com/veloren/veloren?tag=weekly#57ed7d762c4f93e58db96c7c28171787e1d9b700"
 dependencies = [
  "arr_macro",
  "bincode",
@@ -3498,10 +3526,20 @@ dependencies = [
 ]
 
 [[package]]
-name = "webpki-roots"
+name = "web-time"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a6580f308b1fad9207618087a65c04e7a10bc77e02c8e84e9b00dd4b12fa0bb"
+dependencies = [
+ "js-sys",
+ "wasm-bindgen",
+]
+
+[[package]]
+name = "webpki-root-certs"
 version = "0.26.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "841c67bff177718f1d4dfefde8d8f0e78f9b6589319ba88312f567fc5841a958"
+checksum = "e8c6dfa3ac045bc517de14c7b1384298de1dbd229d38e08e169d9ae8c170937c"
 dependencies = [
  "rustls-pki-types",
 ]

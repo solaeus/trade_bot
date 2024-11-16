@@ -18,18 +18,20 @@ use veloren_client_i18n::LocalizationHandle;
 use veloren_common::{
     clock::Clock,
     comp::{
+        inventory::trade_pricing::TradePricing,
         invite::InviteKind,
         item::{ItemDefinitionId, ItemDesc, ItemI18n, MaterialStatManifest},
         tool::AbilityMap,
         ChatType, ControllerInputs, Item, Ori, Pos,
     },
     time::DayPeriod,
-    trade::{PendingTrade, TradeAction, TradeResult},
+    trade::{PendingTrade, SitePrices, TradeAction, TradeResult},
     uid::Uid,
     uuid::Uuid,
     ViewDistances,
 };
 use veloren_common_net::sync::WorldSyncExt;
+use veloren_world::site::Economy;
 
 use crate::config::PriceList;
 
@@ -53,6 +55,7 @@ pub struct Bot {
     material_manifest: MaterialStatManifest,
     item_i18n: ItemI18n,
     localization: LocalizationHandle,
+    site_prices: SitePrices,
 
     buy_prices: PriceList,
     sell_prices: PriceList,
@@ -135,6 +138,9 @@ impl Bot {
         } else {
             client.current::<Ori>().ok_or("Failed to get orientation")?
         };
+
+        let economy = Economy::default();
+        let site_prices = economy.get_site_prices();
         let now = Instant::now();
 
         Ok(Bot {
@@ -147,6 +153,7 @@ impl Bot {
             material_manifest: MaterialStatManifest::load().read().clone(),
             item_i18n: ItemI18n::new_expect(),
             localization: LocalizationHandle::load_expect("en"),
+            site_prices,
             buy_prices,
             sell_prices,
             trade_mode: TradeMode::Trade,
@@ -550,102 +557,61 @@ impl Bot {
         };
 
         let (mut my_offered_coin_amount, mut their_offered_coin_amount) = (0, 0);
-        let my_offered_items_value =
-            my_offer
-                .into_iter()
-                .fold(0, |acc: i32, (slot_id, quantity)| {
-                    if let Some(item) = my_inventory.get(*slot_id) {
-                        let item_id = item.item_definition_id();
-
-                        let item_value = if item_id == COINS {
-                            my_offered_coin_amount = *quantity as i32;
-
-                            1
-                        } else {
-                            self.sell_prices
-                                .0
-                                .get(&item_id)
-                                .map(|int| *int as i32)
-                                .unwrap_or_else(|| {
-                                    self.buy_prices
-                                        .0
-                                        .get(&item_id)
-                                        .map(|int| 0 - *int as i32)
-                                        .unwrap_or(i32::MIN)
-                                })
-                        };
-
-                        let item_name = self.get_item_name(item_id);
-
-                        receipt.my_items.insert(item_name, *quantity);
-                        acc.saturating_add(item_value.saturating_mul(*quantity as i32))
-                    } else {
-                        acc
-                    }
-                });
-        let their_offered_items_value =
-            their_offer
-                .into_iter()
-                .fold(0, |acc: i32, (slot_id, quantity)| {
-                    if let Some(item) = their_inventory.get(*slot_id) {
-                        let item_id = item.item_definition_id();
-
-                        let item_value = if item_id == COINS {
-                            their_offered_coin_amount = *quantity as i32;
-
-                            1
-                        } else {
-                            self.buy_prices
-                                .0
-                                .get(&item_id)
-                                .map(|int| *int as i32)
-                                .unwrap_or_else(|| {
-                                    self.sell_prices
-                                        .0
-                                        .get(&item_id)
-                                        .map(|int| 0 - *int as i32)
-                                        .unwrap_or(0)
-                                })
-                        };
-
-                        let item_name = self.get_item_name(item_id);
-
-                        receipt.their_items.insert(item_name, *quantity);
-                        acc.saturating_add(item_value.saturating_mul(*quantity as i32))
-                    } else {
-                        acc
-                    }
-                });
-
         let mut my_item_to_remove = None;
+        let my_offered_items_value = my_offer.into_iter().try_fold(
+            0,
+            |acc: i32, (slot_id, quantity)| -> Result<i32, String> {
+                if let Some(item) = my_inventory.get(*slot_id) {
+                    let item_id = item.item_definition_id();
 
-        for (slot_id, amount) in my_offer {
-            let item = my_inventory.get(*slot_id).ok_or("Failed to get item")?;
-            let item_id = item.item_definition_id();
+                    let item_value: i32 = if item_id == COINS {
+                        my_offered_coin_amount = *quantity as i32;
 
-            if item_id == COINS {
-                continue;
-            }
+                        1
+                    } else {
+                        my_item_to_remove = Some((*slot_id, *quantity));
 
-            if !self.sell_prices.0.contains_key(&item_id) {
-                my_item_to_remove = Some((*slot_id, *amount));
-            }
-        }
+                        0
+                    };
 
-        let mut their_item_to_remove = None;
+                    let item_name = self.get_item_name(item_id);
 
-        for (slot_id, amount) in their_offer {
-            let item = their_inventory.get(*slot_id).ok_or("Failed to get item")?;
-            let item_id = item.item_definition_id();
+                    receipt.my_items.insert(item_name, *quantity);
 
-            if item_id == COINS {
-                continue;
-            }
+                    let acc = acc.saturating_add(item_value.saturating_mul(*quantity as i32));
 
-            if !self.buy_prices.0.contains_key(&item_id) {
-                their_item_to_remove = Some((*slot_id, *amount));
-            }
-        }
+                    Ok(acc)
+                } else {
+                    Ok(acc)
+                }
+            },
+        )?;
+        let their_offered_items_value = their_offer.into_iter().try_fold(
+            0,
+            |acc: i32, (slot_id, quantity)| -> Result<i32, String> {
+                if let Some(item) = their_inventory.get(*slot_id) {
+                    let item_id = item.item_definition_id();
+
+                    let item_value = if item_id == COINS {
+                        their_offered_coin_amount = *quantity as i32;
+
+                        1
+                    } else {
+                        self.get_npc_price(item_id.clone())? as i32 * *quantity as i32
+                    };
+
+                    let item_name = self.get_item_name(item_id);
+
+                    receipt.their_items.insert(item_name, *quantity);
+
+                    let acc = acc.saturating_add(item_value.saturating_mul(*quantity as i32));
+
+                    Ok(acc)
+                } else {
+                    Ok(acc)
+                }
+            },
+        )?;
 
         drop(inventories);
 
@@ -670,16 +636,6 @@ impl Bot {
                 item: slot_id,
                 quantity,
                 ours: true,
-            });
-
-            return Ok(());
-        }
-
-        if let Some((slot_id, quantity)) = their_item_to_remove {
-            self.client.perform_trade_action(TradeAction::RemoveItem {
-                item: slot_id,
-                quantity,
-                ours: false,
             });
 
             return Ok(());
@@ -999,6 +955,26 @@ impl Bot {
                 None
             }
         })
+    }
+
+    pub fn get_npc_price(&self, item_definition_id: ItemDefinitionId<'_>) -> Result<f32, String> {
+        let materials = TradePricing::get_materials(&item_definition_id)
+            .ok_or("Failed to get NPC price for item.")?;
+        let buy_price: f32 = materials
+            .iter()
+            .map(|(value, good)| {
+                self.site_prices
+                    .values
+                    .get(good)
+                    .cloned()
+                    .unwrap_or_default()
+                    * value
+                    * good.trade_margin()
+                    * 5.0
+            })
+            .sum();
+
+        Ok(buy_price)
     }
 }
 

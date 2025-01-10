@@ -1,0 +1,125 @@
+ ((
+     // (<x>, <y>, <z>)
+    default: (
+        vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
+    ),
+    map: {
+        "common.items.npc_armor.biped_small.gnome.head.gnome": (
+            vox_spec: ("npc.gnome.male.head", (-8.0, -6.5, -12.0)),
+        ),
+        "common.items.npc_armor.biped_small.sahagin.head.spearman": (
+            vox_spec: ("npc.sahagin.spearman.head", (-2.5, 0.0, -4.5)),
+        ),
+        "common.items.npc_armor.biped_small.sahagin.head.sorcerer": (
+            vox_spec: ("npc.sahagin.sorcerer.head", (-2.5, 0.0, -4.5)),
+        ),
+        "common.items.npc_armor.biped_small.sahagin.head.sniper": (
+            vox_spec: ("npc.sahagin.sniper.head", (-2.5, 0.0, -4.5)),
+        ),
+        "common.items.npc_armor.biped_small.adlet.head.hunter": (
+            vox_spec: ("npc.adlet.hunter.head", (-7.0, -4.5, -6.0)),
+        ),
+        "common.items.npc_armor.biped_small.adlet.head.tracker": (
+            vox_spec: ("npc.adlet.tracker.head", (-7.0, -4.5, -6.0)),
+        ),
+        "common.items.npc_armor.biped_small.adlet.head.icepicker": (
+            vox_spec: ("npc.adlet.icepicker.head", (-7.0, -4.5, -6.0)),
+        ),
+        "common.items.npc_armor.biped_small.gnarling.head.mugger": (
+            vox_spec: ("npc.gnarling.mugger.head", (-6.5, -5.5, -4.5)),
+        ),
+        "common.items.npc_armor.biped_small.gnarling.head.stalker": (
+            vox_spec: ("npc.gnarling.stalker.head", (-6.5, -5.5, -4.5)),
+        ),
+        "common.items.npc_armor.biped_small.gnarling.head.logger": (
+            vox_spec: ("npc.gnarling.logger.head", (-6.5, -5.5, -4.5)),
+        ),
+        "common.items.npc_armor.biped_small.gnarling.head.chieftain": (
+            vox_spec: ("npc.gnarling.chieftain.head", (-6.5, -5.5, -4.5)),
+        ),
+        "common.items.npc_armor.biped_small.mandragora.head.mandragora": (
+            vox_spec: ("npc.mandragora.male.head", (0.0, 0.0, 0.0)),
+        ),
+        "common.items.npc_armor.biped_small.kappa.head.kappa": (
+            vox_spec: ("npc.kappa.male.chest", (-4.5, -5.0, -4.5)),
+        ),
+        "common.items.npc_armor.biped_small.cactid.head.cactid": (
+            vox_spec: ("npc.cactid.male.head", (-8.0, -4.0, -7.5)),
+        ),
+        "common.items.npc_armor.biped_small.gnoll.head.rogue": (
+            vox_spec: ("npc.gnoll.rogue.head", (-4.0, -1.5, -3.0)),
+        ),
+        "common.items.npc_armor.biped_small.gnoll.head.shaman": (
+            vox_spec: ("npc.gnoll.shaman.head", (-4.0, -1.5, -3.0)),
+        ),
+        "common.items.npc_armor.biped_small.gnoll.head.trapper": (
+            vox_spec: ("npc.gnoll.trapper.head", (-4.0, -1.5, -3.0)),
+        ),
+        "common.items.npc_armor.biped_small.haniwa.head.guard": (
+            vox_spec: ("npc.haniwa.guard.head", (-5.5, -5.5, -5.5)),
+        ),
+        "common.items.npc_armor.biped_small.haniwa.head.archer": (
+            vox_spec: ("npc.haniwa.archer.head", (-5.5, -5.5, -5.5)),
+        ),
+        "common.items.npc_armor.biped_small.haniwa.head.soldier": (
+            vox_spec: ("npc.haniwa.soldier.head", (-5.5, -5.5, -5.5)),
+        ),
+        "common.items.npc_armor.biped_small.myrmidon.head.hoplite": (
+            vox_spec: ("npc.myrmidon.hoplite.head", (-4.5, -7.0, -6.5)),
+        ),
+        "common.items.npc_armor.biped_small.myrmidon.head.marksman": (
+            vox_spec: ("npc.myrmidon.marksman.head", (-4.5, -7.0, -6.5)),
+        ),
+        "common.items.npc_armor.biped_small.myrmidon.head.strategian": (
+            vox_spec: ("npc.myrmidon.strategian.head", (-4.5, -7.0, -6.5)),
+        ),
+        "common.items.npc_armor.biped_small.husk.head.husk": (
+            vox_spec: ("npc.husk.male.head", (-6.0, -6.0, -5.5)),
+        ),
+        "common.items.npc_armor.biped_small.boreal.head.warrior": (
+            vox_spec: ("npc.boreal.warrior.head", (-8.0, -6.0, -8.0)),
+        ),
+        "common.items.npc_armor.biped_small.iron_dwarf.head.iron_dwarf": (
+            vox_spec: ("npc.iron_dwarf.head", (-6.0, -5.0, -8.5)),
+        ),
+        "common.items.npc_armor.biped_small.flamekeeper.head.flamekeeper": (
+            vox_spec: ("npc.flamekeeper.head", (-8.0, -7.0, -10.0)),
+        ),
+        "common.items.npc_armor.biped_small.shamanic_spirit.head.shamanic_spirit": (
+            vox_spec: ("npc.shamanic_spirit.head", (-8.0, -6.5, -8.5)),
+        ),
+        "common.items.npc_armor.biped_small.jiangshi.head.jiangshi": (
+            vox_spec: ("npc.jiangshi.head", (-8.0, -9.0, -8.5)),
+        ),
+        "common.items.npc_armor.biped_small.bloodmoon_heiress.head.bloodmoon_heiress": (
+            vox_spec: ("npc.bloodmoon_heiress.head", (-8.5, -11.5, 0.0)),
+        ),
+        "common.items.npc_armor.biped_small.bloodservant.head.bloodservant": (
+            vox_spec: ("npc.bloodservant.head", (-8.0, -7.0, -6.5)),
+        ),
+        "common.items.npc_armor.biped_small.harlequin.head.harlequin": (
+            vox_spec: ("npc.harlequin.head", (-10.0, -4.5, -5.5)),
+        ),
+        "common.items.npc_armor.biped_small.goblin_thug.head.goblin_thug": (
+            vox_spec: ("npc.goblin_thug.head", (-10.5, -7.0, -1.5)),
+        ),
+        "common.items.npc_armor.biped_small.goblin_chucker.head.goblin_chucker": (
+            vox_spec: ("npc.goblin_chucker.head", (-10.5, -6.5, -1.5)),
+        ),
+        "common.items.npc_armor.biped_small.goblin_ruffian.head.goblin_ruffian": (
+            vox_spec: ("npc.goblin_ruffian.head", (-10.5, -5.0, -2.5)),
+        ),
+        "common.items.npc_armor.biped_small.green_legoom.head.green_legoom": (
+            vox_spec: ("npc.green_legoom.head", (-5.0, -5.0, -2.0)),
+        ),
+        "common.items.npc_armor.biped_small.ochre_legoom.head.ochre_legoom": (
+            vox_spec: ("npc.ochre_legoom.head", (-5.0, -5.0, -2.0)),
+        ),
+        "common.items.npc_armor.biped_small.purple_legoom.head.purple_legoom": (
+            vox_spec: ("npc.purple_legoom.head", (-5.0, -5.0, -1.5)),
+        ),
+        "common.items.npc_armor.biped_small.red_legoom.head.red_legoom": (
+            vox_spec: ("npc.red_legoom.head", (-7.0, -5.0, -2.0)),
+        ),                                
+    },
+))

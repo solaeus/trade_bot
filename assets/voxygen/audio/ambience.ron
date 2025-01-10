@@ -1,0 +1,24 @@
+(
+    tracks: [
+        (
+            path: "voxygen.audio.ambience.wind",
+            tag: Wind,
+        ),
+        (
+            path: "voxygen.audio.ambience.rain",
+            tag: Rain,
+        ),
+        (
+            path:"voxygen.audio.ambience.thunder",
+            tag: ThunderRumbling,
+        ),
+        (
+            path:"voxygen.audio.ambience.leaves",
+            tag: Leaves,
+        ),
+        (
+            path:"voxygen.audio.ambience.cave",
+            tag: Cave,
+        )
+    ]
+)

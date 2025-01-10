@@ -17,7 +17,8 @@ serde = { version = "1.0.203", features = ["derive"] }
 log = "0.4.22"
 env_logger = "0.11.3"
 vek = { version = "0.17.0", features = ["repr_simd"] }
-hashbrown = { version = "0.14.5", features = ["equivalent"] }
+hashbrown = { version = "0.15.1", features = ["equivalent"] }
 
 [patch.crates-io]
 specs = { git = "https://github.com/amethyst/specs.git", rev = "4e2da1df29ee840baa9b936593c45592b7c9ae27" }
+hashbrown = { git = "https://github.com/rust-lang/hashbrown.git", rev = "458e44532a65cf850bde3c22bd5d30a1ce2ed6af"}

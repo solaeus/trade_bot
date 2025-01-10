@@ -13,7 +13,7 @@ use serde::{
     de::{self, Visitor},
     Deserialize,
 };
-use veloren_common::comp::item::{ItemDefinitionIdOwned, Material};
+use veloren_common::comp::item::ItemDefinitionIdOwned;
 
 #[derive(Deserialize)]
 /// Non-sensitive configuration values.
@@ -70,25 +70,19 @@ impl<'de> Visitor<'de> for PriceListVisitor {
         while let Some((key, value)) = map.next_entry::<String, u32>()? {
             let item_id = match key.splitn(3, '|').collect::<Vec<&str>>().as_slice() {
                 [material, primary, secondary] => {
-                    let material = material.parse::<Material>().map_err(|error| {
-                        de::Error::custom(format!("Failed to parse material: {}", error))
-                    })?;
-                    let mut primary = primary.to_string();
-                    let mut secondary = secondary.to_string();
-
-                    primary.insert_str(0, "common.items.modular.weapon.primary.");
-                    secondary.insert_str(0, "common.items.modular.weapon.secondary.");
+                    let material = "common.items.".to_string() + material;
+                    let primary = "common.items.modular.weapon.primary.".to_string() + primary;
+                    let secondary =
+                        "common.items.modular.weapon.secondary.".to_string() + secondary;
 
                     ItemDefinitionIdOwned::Modular {
                         pseudo_base: "veloren.core.pseudo_items.modular.tool".to_string(),
                         components: vec![
+                            ItemDefinitionIdOwned::Simple(secondary),
                             ItemDefinitionIdOwned::Compound {
                                 simple_base: primary,
-                                components: vec![ItemDefinitionIdOwned::Simple(
-                                    material.asset_identifier().unwrap().to_string(),
-                                )],
+                                components: vec![ItemDefinitionIdOwned::Simple(material)],
                             },
-                            ItemDefinitionIdOwned::Simple(secondary),
                         ],
                     }
                 }

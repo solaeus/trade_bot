@@ -125,6 +125,8 @@ impl Bot {
             clock.tick();
         }
 
+        client.request_player_physics(false);
+
         let position = if let Some(coords) = position {
             Pos(coords.into())
         } else {
@@ -256,11 +258,15 @@ impl Bot {
                 let price_correction_message = "Use the format 'price [search_term]'";
                 let correction_message = match command {
                     "admin_access" => {
-                        if self.is_user_admin(&sender)? && !self.client.is_trading() {
+                        if self.is_user_admin(&sender)? {
                             info!("Providing admin access");
 
                             self.previous_trade = None;
                             self.trade_mode = TradeMode::AdminAccess;
+
+                            if self.client.is_trading() {
+                                self.client.perform_trade_action(TradeAction::Decline);
+                            }
 
                             self.client.send_invite(sender, InviteKind::Trade);
 
@@ -628,6 +634,8 @@ impl Bot {
             }
 
             if !self.sell_prices.0.contains_key(&item_id) {
+                info!("No sell price for {item_id:?}");
+
                 my_item_to_remove = Some((*slot_id, *amount));
             }
         }
@@ -643,28 +651,16 @@ impl Bot {
             }
 
             if !self.buy_prices.0.contains_key(&item_id) {
+                info!("No buy price for {item_id:?}");
+
                 their_item_to_remove = Some((*slot_id, *amount));
             }
         }
 
         drop(inventories);
 
-        // If the trade hasn't changed, do nothing to avoid spamming the server.
-        if let Some(previous) = &self.previous_trade {
-            if previous == &trade {
-                return Ok(());
-            }
-        }
-
-        // Up until now there may have been an error, so we only update and check the previous
-        // offer now. The trade action is infallible from here.
-        self.previous_trade = Some(trade);
-
-        debug!("Performing trade action with {their_name}");
-
         // Before running any actual trade logic, remove items that are not for sale or not being
         // purchased. End this trade action if an item was removed.
-
         if let Some((slot_id, quantity)) = my_item_to_remove {
             self.client.perform_trade_action(TradeAction::RemoveItem {
                 item: slot_id,
@@ -686,6 +682,19 @@ impl Bot {
         }
 
         let difference = their_offered_items_value - my_offered_items_value;
+
+        // If the trade hasn't changed, do nothing to avoid spamming the server.
+        if let Some(previous) = &self.previous_trade {
+            if previous == &trade {
+                return Ok(());
+            }
+        }
+
+        // Up until now there may have been an error, so we only update and check the previous
+        // offer now. The trade action is infallible from here.
+        self.previous_trade = Some(trade);
+
+        debug!("Performing trade action with {their_name}");
 
         // The if/else statements below implement the bot's main feature: buying, selling and
         // trading items according to the values set in the configuration file. Coins are used to

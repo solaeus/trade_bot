@@ -88,6 +88,7 @@ subtitle-instrument_dark_guitar = Dark Guitar playing
 subtitle-instrument_washboard = Washboard playing
 subtitle-instrument_wildskin_drum = Wildskin Drum playing
 subtitle-instrument_kora = Kora playing
+subtitle-instrument_banjo = Banjo playing
 subtitle-pickup_instrument = Pickup instrument
 
 subtitle-explosion = Explosion
@@ -169,3 +170,6 @@ subtitle-utterance-phoenix-angry = Phoenix screaming
 subtitle-utterance-phoenix-hurt = Phoenix hurting
 subtitle-utterance-vampire-bat-angry = Bat screaming
 subtitle-utterance-vampire-bat-hurt = Bat hurting
+subtitle-utterance-legoom-calm = Legoom calling
+subtitle-utterance-legoom-hurt = Legoom hurting
+subtitle-utterance-legoom-angry = Legoom shouting

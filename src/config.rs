@@ -78,11 +78,11 @@ impl<'de> Visitor<'de> for PriceListVisitor {
                     ItemDefinitionIdOwned::Modular {
                         pseudo_base: "veloren.core.pseudo_items.modular.tool".to_string(),
                         components: vec![
-                            ItemDefinitionIdOwned::Simple(secondary),
                             ItemDefinitionIdOwned::Compound {
                                 simple_base: primary,
                                 components: vec![ItemDefinitionIdOwned::Simple(material)],
                             },
+                            ItemDefinitionIdOwned::Simple(secondary),
                         ],
                     }
                 }

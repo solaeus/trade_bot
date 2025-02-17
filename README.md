@@ -1,5 +1,8 @@
 # Veloren Trading Bot
 
+> [!CAUTION]
+> As of February 2025, bots such as this one are no longer allowed on the official Veloren server.
+
 A bot that buys, sells and trades with players.
 
 The bot is containerized and can be run without compiling or building anything. Alternatively, you
